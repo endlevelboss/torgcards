@@ -11,7 +11,11 @@
                  [http-kit "2.5.3"]
                  [ring "1.8.2"]
                  [hiccup "1.0.5"]
-                 [org.clojure/clojurescript "1.10.764"]]
+                 [org.clojure/clojurescript "1.10.764"]
+                 [reagent "1.1.0"]
+                 [re-frame "1.2.0"]
+                 [cljsjs/react "17.0.2-0"]
+                 [cljsjs/react-dom "17.0.2-0"]]
   :repl-options {:init-ns torgcards.core}
   :main ^:skip-aot torgcards.core
 

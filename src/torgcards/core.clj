@@ -5,10 +5,15 @@
             [reitit.ring :as reitit]
             [muuntaja.middleware :as muuntaja]
             [clojure.pprint :as pp]
+            [clojure.edn :as edn]
             [hiccup.page :as page])
   (:gen-class))
 
+(defonce db (atom {}))
+
 (defonce channels (atom #{}))
+
+(defonce players (atom {}))
 
 (defn connect! [channel]
   (println "Channel opened")
@@ -18,22 +23,35 @@
   (println "Channel closed " status)
   (swap! channels disj channel))
 
+(defn message! [channel ws-message]
+  (let [message (edn/read-string ws-message)]
+    (swap! db merge message)))
+
 (defn html-handler [request-map]
   ;; (pp/pprint request-map)
   (response/ok
    (page/html5 [:body
-                [:div {:id "content"} "Here comes hopefully content"]
+                [:div {:id "content"} "Lodading script"]
                 [:img {:src "img/destiny/5.jpg"}]]
+               (page/include-js "/js/app.js"))))
+
+(defn gm-handler [request-map]
+  ;; (pp/pprint request-map)
+  (response/ok
+   (page/html5 [:body
+                [:div {:id "content"} "Loading script"]
+                [:input {:id "gm" :type "hidden" :value "true"}]]
                (page/include-js "/js/app.js"))))
 
 (defn ws-handler [req]
   (kit/as-channel req
-                  {:on-receive (fn [ch message] (println "got message"))
+                  {:on-receive (fn [ch message] (message! ch message))
                    :on-open (fn [ch] (connect! ch))
                    :on-close (fn [ch status] (disconnect! ch status))}))
 
 (def routes
   [["/" {:get html-handler}]
+   ["/asle" {:get gm-handler}]
    ["/ws" {:get ws-handler}]])
 
 
@@ -66,7 +84,11 @@
 (comment
   (start)
 
-
+  (doseq [channel @channels]
+    (kit/send! channel (pr-str {:player-count 1})))
+  (pr-str {:a 1})
   @channels
+
+  @db
 
   )
