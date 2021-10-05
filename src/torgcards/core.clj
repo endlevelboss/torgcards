@@ -5,27 +5,9 @@
             [reitit.ring :as reitit]
             [muuntaja.middleware :as muuntaja]
             [clojure.pprint :as pp]
-            [clojure.edn :as edn]
-            [hiccup.page :as page])
+            [hiccup.page :as page]
+            [torgcards.ws :as ws])
   (:gen-class))
-
-(defonce db (atom {}))
-
-(defonce channels (atom #{}))
-
-(defonce players (atom {}))
-
-(defn connect! [channel]
-  (println "Channel opened")
-  (swap! channels conj channel))
-
-(defn disconnect! [channel status]
-  (println "Channel closed " status)
-  (swap! channels disj channel))
-
-(defn message! [channel ws-message]
-  (let [message (edn/read-string ws-message)]
-    (swap! db merge message)))
 
 (defn html-handler [request-map]
   ;; (pp/pprint request-map)
@@ -45,9 +27,9 @@
 
 (defn ws-handler [req]
   (kit/as-channel req
-                  {:on-receive (fn [ch message] (message! ch message))
-                   :on-open (fn [ch] (connect! ch))
-                   :on-close (fn [ch status] (disconnect! ch status))}))
+                  {:on-receive (fn [ch message] (ws/message! ch message))
+                   :on-open (fn [ch] (ws/connect! ch))
+                   :on-close (fn [ch status] (ws/disconnect! ch status))}))
 
 (def routes
   [["/" {:get html-handler}]

@@ -17,14 +17,24 @@
  (fn [db _]
    (:player-count db)))
 
-(defn send-message! [msg]
+(rf/reg-sub
+ :player-name
+ (fn [db _]
+   (:player-name db)))
+
+(rf/reg-event-db
+ :set-player-name
+ (fn [db [_ name]]
+   (assoc db :player-name name)))
+
+(defn send-message! [command sender msg]
   (if-let [chan @channel]
-    (.send chan (pr-str msg))
+    (.send chan (pr-str {:command command :sender sender :message msg}))
     (throw (js/Error. "Not connected"))))
 
 (rf/reg-event-fx
  :initialize-game
  (fn [_ [_ value]]
    (let [db (assoc logic/initial-db :player-count value)]
-     (send-message! db)
+     (send-message! :initialize :gm db)
      {:db db})))

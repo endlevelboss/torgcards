@@ -40,6 +40,8 @@
   [:target-path
    [:cljsbuild :builds :app :compiler :output-dir]
    [:cljsbuild :builds :app :compiler :output-to]]
-
-  :profiles {:uberjar {:aot :all
+  
+  :profiles {:dev {:resource-paths ["target"]
+                   :clean-targets ^{:protect false} ["target"]}
+             :uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
