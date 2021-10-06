@@ -12,7 +12,7 @@
 
 (defn on-key-press [event value command]
   (if (= 13 (.-charCode event))
-    (db/send-message! command nil value)))
+    (db/send-message! value)))
 
 ;; (defn login-enter [event value]
 ;;   (on-key-press event value :login)
@@ -28,7 +28,7 @@
                 :on-change #(reset! player (-> % .-target .-value))
                 :on-key-press #(if (= 13 (.-charCode %))
                                  (do
-                                   (db/send-message! :login @player @player)
+                                   (db/send-message! @player)
                                    (rf/dispatch [:set-player-name @player])))}]])))
 
 (defn player-view []
@@ -46,16 +46,25 @@
                 :value @num
                 :on-change #(reset! num (-> % .-target .-value))
                 :on-key-press #(if (= 13 (.-charCode %))
-                                 (rf/dispatch [:initialize-game @num]))}]])))
+                                 (rf/dispatch [:initialize-game (int @num)]))}]])))
+
+(defn gm-play []
+  (let [current-drama @(rf/subscribe [:current-drama])]
+    [:div "torg game started"
+     [:div 
+      {:style {:width 50 :height 50 :background-color "green"}}
+      current-drama]
+     [:div
+      {:style {:width 50 :height 50 :background-color "red"}
+       :on-click #(rf/dispatch [:draw-drama nil])}
+      "drama-deck"]]))
 
 (defn gm-view []
-  (let [playercount @(rf/subscribe [:player-count])]
-    (if (or (nil? playercount)
-            (= 0 playercount))
-      [gm-login]
-      [:div
-       [:div "player count"]
-       [:div playercount]])))
+  (let [db? @(rf/subscribe [:get-db])]
+    ;; (.log js/console (str "empty? " empty-db?))
+    (if (seq db?)
+      [gm-play]
+      [gm-login])))
 
 
 

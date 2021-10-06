@@ -25,4 +25,16 @@
    :cosm (sorted-random-range 10)
    :discarded-cosm []
    :drama (sorted-random-range 40)
+   :current-drama nil
    :setting nil})
+
+(defn check-for-nil [card deck]
+  (if (nil? card)
+    deck
+    (conj deck card)))
+
+(defn draw-drama-card [db]
+  (let [new-card (first (:drama db))
+        old-card (:current-drama db)
+        new-deck (rest (:drama db))]
+    {:current-drama new-card :drama new-deck}))
