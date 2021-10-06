@@ -66,11 +66,6 @@
 (comment
   (start)
 
-  (doseq [channel @channels]
-    (kit/send! channel (pr-str {:player-count 1})))
-  (pr-str {:a 1})
-  @channels
-
-  @db
+  
 
   )

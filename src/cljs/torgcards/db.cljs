@@ -37,9 +37,8 @@
 
 (rf/reg-event-fx
  :draw-drama
- (fn [db [_ _]]
+ (fn [{:keys [db]} [_ _]]
    (let [result (logic/draw-drama-card db)]
-     (.log js/console "clicked if rf")
      (send-message! result)
      {:db (merge db result)})))
 

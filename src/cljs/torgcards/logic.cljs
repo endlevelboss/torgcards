@@ -34,7 +34,7 @@
     (conj deck card)))
 
 (defn draw-drama-card [db]
-  (let [new-card (first (:drama db))
-        old-card (:current-drama db)
-        new-deck (rest (:drama db))]
+  (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
+        new-card (first drama)
+        new-deck (rest drama)]
     {:current-drama new-card :drama new-deck}))

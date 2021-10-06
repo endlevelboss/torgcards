@@ -48,6 +48,12 @@
                 :on-key-press #(if (= 13 (.-charCode %))
                                  (rf/dispatch [:initialize-game (int @num)]))}]])))
 
+(defn database-view []
+  (let [mydb @(rf/subscribe [:get-db])]
+    [:div
+     (for [[k v] (seq mydb)]
+       ^{:key k}[:div (str k " : " v)])]))
+
 (defn gm-play []
   (let [current-drama @(rf/subscribe [:current-drama])]
     [:div "torg game started"
@@ -57,7 +63,8 @@
      [:div
       {:style {:width 50 :height 50 :background-color "red"}
        :on-click #(rf/dispatch [:draw-drama nil])}
-      "drama-deck"]]))
+      "drama-deck"]
+     [database-view]]))
 
 (defn gm-view []
   (let [db? @(rf/subscribe [:get-db])]
