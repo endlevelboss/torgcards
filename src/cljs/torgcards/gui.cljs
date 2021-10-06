@@ -10,9 +10,6 @@
     (catch js/Object e
       "false")))
 
-(defn on-key-press [event value command]
-  (if (= 13 (.-charCode event))
-    (db/send-message! value)))
 
 ;; (defn login-enter [event value]
 ;;   (on-key-press event value :login)
@@ -37,6 +34,12 @@
       [player-login]
       [:div my-name])))
 
+(defn database-view []
+  (let [mydb @(rf/subscribe [:get-db])]
+    [:div
+     (for [[k v] (seq mydb)]
+       ^{:key k} [:div (str k " : " v)])]))
+
 (defn gm-login []
   (let [num (r/atom "")]
     (fn []
@@ -46,13 +49,8 @@
                 :value @num
                 :on-change #(reset! num (-> % .-target .-value))
                 :on-key-press #(if (= 13 (.-charCode %))
-                                 (rf/dispatch [:initialize-game (int @num)]))}]])))
-
-(defn database-view []
-  (let [mydb @(rf/subscribe [:get-db])]
-    [:div
-     (for [[k v] (seq mydb)]
-       ^{:key k}[:div (str k " : " v)])]))
+                                 (rf/dispatch [:initialize-game (int @num)]))}]
+       [database-view]])))
 
 (defn gm-play []
   (let [current-drama @(rf/subscribe [:current-drama])]

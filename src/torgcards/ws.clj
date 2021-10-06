@@ -8,17 +8,20 @@
 
 (defonce players (atom []))
 
+(defn temp-send-message! [msg]
+  (doseq [ch @channels]
+    (kit/send! ch (pr-str msg))))
+
 (defn connect! [channel]
   (println "Channel opened")
-  (swap! channels conj channel))
+  (swap! channels conj channel)
+  (temp-send-message! @db))
 
 (defn disconnect! [channel status]
   (println "Channel closed " status)
   (swap! channels disj channel))
 
-(defn temp-send-message! []
-  (doseq [ch @channels]
-    (kit/send! ch (pr-str @db))))
+
 
 (defn add-player [ch player]
   (let [allowed-players (:player-count @db)]
@@ -28,13 +31,13 @@
       :else (do
               (swap! players conj [ch player])
               (swap! db update-in [:players] conj player)
-              (temp-send-message!)))))
+              (temp-send-message! @db)))))
 
 (defn reset-db! []
   (reset! db {})
   (reset! channels #{})
   (reset! players [])
-  (temp-send-message!))
+  (temp-send-message! @db))
 
 (defn message! [channel ws-message]
   (let [message (edn/read-string ws-message)]
@@ -51,4 +54,6 @@
   @channels
   (seq {:a 1})
   @db
+
+  (temp-send-message! @db)
   )

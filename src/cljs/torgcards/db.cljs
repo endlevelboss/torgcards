@@ -4,11 +4,6 @@
 
 (defonce channel (atom nil))
 
-
-
-(defn handle-response! [response]
-  (rf/dispatch [:update-db response]))
-
 (rf/reg-sub
  :get-db
  (fn [db _]
@@ -31,8 +26,7 @@
 
 (rf/reg-event-fx
  :update-db
- (fn [db [_ vals]]
-   (send-message! vals)
+ (fn [{:keys [db]} [_ vals]]
    {:db (merge db vals)}))
 
 (rf/reg-event-fx
@@ -53,3 +47,7 @@
  :current-drama
  (fn [db _]
    (:current-drama db)))
+
+
+(defn handle-response! [response]
+  (rf/dispatch [:update-db response]))
