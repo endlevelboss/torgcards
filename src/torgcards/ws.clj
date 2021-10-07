@@ -66,15 +66,18 @@
              :players {"jarl" {:player-hand [5 7 56]
                                :player-pool [3 8]
                                :cosm-hand [5]
-                               :cosm-pool []}
+                               :cosm-pool []
+                               :cosm "nile"}
                        "gustav" {:player-hand [11 12 14]
                                  :player-pool [15]
                                  :cosm-hand [7]
-                                 :cosm-pool []}
+                                 :cosm-pool []
+                                 :cosm "tharkold"}
                        "magnus" {:player-hand [16 17]
                                  :player-pool []
                                  :cosm-hand []
-                                 :cosm-pool [1]}}}]
+                                 :cosm-pool [1]
+                                 :cosm "panpacifica"}}}]
     (temp-send-message! msg)
     (swap! db merge @db msg))
 

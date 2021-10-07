@@ -59,8 +59,8 @@
      (for [[n i] (zipmap player-pool (range (count player-pool)))]
        ^{:key n} [card-display n "img/destiny/" (style-me i 40 offset2 horizontal?) {:scale 0.4}])]))
 
-(defn other-players-cosm [player cosm offset1 offset2 horizontal?]
-  (let [{:keys [cosm-hand cosm-pool]} @(rf/subscribe [:player player])
+(defn other-players-cosm [player offset1 offset2 horizontal?]
+  (let [{:keys [cosm-hand cosm-pool cosm]} @(rf/subscribe [:player player])
         path (str "img/cosm/" cosm "/")]
     [:div {:style {:position "absolute" :top 0 :left 0}}
      (for [[n i] (zipmap cosm-hand (range (count cosm-hand)))]
@@ -101,31 +101,31 @@
                  :text-align "center"}}
    name])
 
-(defn player-display [name cosm top left flip?]
+(defn player-display [name top left flip?]
   (let [[adj1 adj2] (if flip? [120 0] [0 120])]
     [:div {:style {:position "absolute" :top top :left left}}
      [nameplate name 0 (+ adj1 5)]
      [:div {:style {:position "absolute" :top 208 :left 0}}
       [other-players-view name adj1 adj2 false]]
      [:div {:style {:position "absolute" :top 33 :left 0}}
-      [other-players-cosm name cosm adj1 adj2 false]]]))
+      [other-players-cosm name adj1 adj2 false]]]))
 
-(defn player-display-horizontal [name cosm top left]
+(defn player-display-horizontal [name top left]
   [:div {:style {:position "absolute" :top top :left left}}
    [nameplate name 0 5]
    [:div {:style {:position "absolute" :top 35 :left 130}}
     [other-players-view name 0 168 true]]
    [:div {:style {:position "absolute" :top 35 :left 0}}
-    [other-players-cosm name cosm 0 168 true]]])
+    [other-players-cosm name 0 168 true]]])
 
 (defn gm-play []
   (let [current-drama @(rf/subscribe [:current-drama])]
     [:div {:style {:position "absolute"}}
      [:img {:style {:position "absolute" :top 40 :left 20}
             :src "img/torg/logo.png" :width 250}]
-     [player-display "gustav" "nile" 187 0 false]
-     [player-display-horizontal "jarl" "nile" 0 305 false true]
-     [player-display "magnus" "nile" 187 850 true]
+     [player-display "gustav" 187 0 false]
+     [player-display-horizontal "jarl" 0 305 false true]
+     [player-display "magnus" 187 850 true]
      [:div {:style {:position "absolute" :top 800 :left 300}}
       [card-display current-drama "img/drama/" nil {:rotation :horizontal}]
       [:div
@@ -146,24 +146,25 @@
 
 (defn player-play []
   (let [me @(rf/subscribe [:player-name])
-        {:keys [player-hand player-pool cosm-hand cosm-pool]} @(rf/subscribe [:player me])
+        {:keys [player-hand player-pool cosm-hand cosm-pool cosm]} @(rf/subscribe [:player me])
         players @(rf/subscribe [:player-list])
         other-players (remove #{me} players)
-        current-drama @(rf/subscribe [:current-drama])]
+        current-drama @(rf/subscribe [:current-drama])
+        cosm-path (str "img/cosm/" cosm "/")]
     [:div {:style {:position "absolute"}}
      [:img {:style {:position "absolute" :top 0 :left 0}
             :src "img/torg/logo.png" :width 250}]
-     [player-display (first other-players) "nile" 85 5 false]
-     [player-display (last other-players) "nile" 85 890 true]
+     [player-display (first other-players) 85 5 false]
+     [player-display (last other-players) 85 890 true]
      [:div {:style {:position "absolute" :top 20 :left 360}}
       [card-display current-drama "img/drama/" nil {:rotation :horizontal}]]
      [:div {:style {:position "absolute" :top 900 :left 20}}
       (for [[n i] (zipmap cosm-hand (range (count cosm-hand)))]
-        ^{:key n} [card-display n "img/cosm/nile/" (style-me i 220 0 true) {:scale 0.75
+        ^{:key n} [card-display n cosm-path (style-me i 220 0 true) {:scale 0.75
                                                                             :onclick (move-card me :cosm-hand :cosm-pool)}])]
      [:div {:style {:position "absolute" :top 590 :left 20}}
       (for [[n i] (zipmap cosm-pool (range (count cosm-pool)))]
-        ^{:key n} [card-display n "img/cosm/nile/" (style-me i 220 0 true) {:scale 0.75
+        ^{:key n} [card-display n cosm-path (style-me i 220 0 true) {:scale 0.75
                                                                             :onclick (move-card me :cosm-pool :cosm-hand)}])]
      [:div {:style {:position "absolute" :top 900 :left 250}}
       (for [[n i] (zipmap player-hand (range (count player-hand)))]
