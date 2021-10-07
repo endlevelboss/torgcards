@@ -55,5 +55,15 @@
   (seq {:a 1})
   @db
 
-  (temp-send-message! @db)
+  (let [msg {:players {"jarl" {:player-hand [5 7]
+                               :player-pool [3 8 ]}
+                       "gustav" {:player-hand [11 12 14]
+                                 :player-pool [15]}
+                       "magnus" {:player-hand [16 17]
+                                 :player-pool [18 ]}}}]
+    (temp-send-message! msg)
+    (swap! db merge @db msg))
+  
+
+  (seq (zipmap [1 2] [3 4]))
   )

@@ -33,6 +33,19 @@
     deck
     (conj deck card)))
 
+(defn shuffle-discarded-destiny [db]
+  (->> (:discarded-destiny db)
+       (map #(hash-map :val % :rnd (rand)))
+       (sort-by :rnd)
+       (map :val)))
+
+(defn deal-destiny-card [name db]
+  (let [not-empty-destiny? (seq (:destiny db))
+        destiny (if not-empty-destiny? (:destiny db) (shuffle-discarded-destiny db))
+        discard (if not-empty-destiny? (:discarded-destiny db) [])
+        players (update-in (:players db) [name :player-hand] conj (first destiny))]
+    {:destiny (rest destiny) :discarded-destiny discard :players players}))
+
 (defn draw-drama-card [db]
   (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
         new-card (first drama)

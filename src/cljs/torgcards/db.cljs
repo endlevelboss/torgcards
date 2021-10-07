@@ -43,10 +43,22 @@
      (send-message! db)
      {:db db})))
 
+(rf/reg-event-fx
+ :give-destiny-card
+ (fn [{:keys [db]} [_ name]]
+   (let [result (logic/deal-destiny-card name db)]
+     (send-message! result)
+     {:db (merge db result)})))
+
 (rf/reg-sub
  :current-drama
  (fn [db _]
    (:current-drama db)))
+
+(rf/reg-sub
+ :player
+ (fn [db [_ name]]
+   (get-in db [:players name])))
 
 
 (defn handle-response! [response]
