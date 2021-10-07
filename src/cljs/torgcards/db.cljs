@@ -50,6 +50,20 @@
      (send-message! result)
      {:db (merge db result)})))
 
+(rf/reg-event-fx
+ :move-card-from-to
+ (fn [{:keys [db]} [_ {:keys [name id from to]}]]
+   (let [result (logic/move-card db name id from to)]
+     (send-message! result)
+     {:db (merge db result)})))
+
+(rf/reg-event-fx
+ :return-card-from-pool
+ (fn [{:keys [db]} [_ {:keys [name id]}]]
+   (let [result (logic/return-from-pool db name id)]
+     (send-message! result)
+     {:db (merge db result)})))
+
 (rf/reg-sub
  :current-drama
  (fn [db _]
@@ -59,6 +73,11 @@
  :player
  (fn [db [_ name]]
    (get-in db [:players name])))
+
+(rf/reg-sub
+ :player-list
+ (fn [db _]
+   (:player-list db)))
 
 
 (defn handle-response! [response]

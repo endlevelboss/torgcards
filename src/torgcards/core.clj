@@ -13,8 +13,7 @@
   ;; (pp/pprint request-map)
   (response/ok
    (page/html5 [:body
-                [:div {:id "content"} "Lodading script"]
-                [:img {:src "img/destiny/5.jpg"}]]
+                [:div {:id "content"} "Lodading script"]]
                (page/include-js "/js/app.js"))))
 
 (defn gm-handler [request-map]

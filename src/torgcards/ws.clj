@@ -41,11 +41,16 @@
 
 (defn message! [channel ws-message]
   (let [message (edn/read-string ws-message)]
-    (swap! db merge @db message)))
+    (swap! db merge @db message)
+    (temp-send-message! message)))
 
 
 
 (comment
+
+  (merge {:a {:b {:c 1 :d 2}}} {:a {:b {:d 3}}})
+
+  (into [] (remove #{3} [1 2 3 4]))
 
   (reset-db!)
 
@@ -54,16 +59,25 @@
   @channels
   (seq {:a 1})
   @db
+  
+  (remove #{3} #{1 2 3})
 
-  (let [msg {:players {"jarl" {:player-hand [5 7]
-                               :player-pool [3 8 ]}
+  (let [msg {:player-list #{"jarl" "gustav" "magnus"}
+             :players {"jarl" {:player-hand [5 7 56]
+                               :player-pool [3 8]
+                               :cosm-hand [5]
+                               :cosm-pool []}
                        "gustav" {:player-hand [11 12 14]
-                                 :player-pool [15]}
+                                 :player-pool [15]
+                                 :cosm-hand [7]
+                                 :cosm-pool []}
                        "magnus" {:player-hand [16 17]
-                                 :player-pool [18 ]}}}]
+                                 :player-pool []
+                                 :cosm-hand []
+                                 :cosm-pool [1]}}}]
     (temp-send-message! msg)
     (swap! db merge @db msg))
-  
+
 
   (seq (zipmap [1 2] [3 4]))
   )

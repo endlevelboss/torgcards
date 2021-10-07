@@ -51,3 +51,24 @@
         new-card (first drama)
         new-deck (rest drama)]
     {:current-drama new-card :drama new-deck}))
+
+(defn play-to-pool [db player id]
+  (let [pool (conj (get-in db [:players player :player-pool]) id)
+        hand (into [] (remove #{id} (get-in db [:players player :player-hand])))]
+    {:players (-> (:players db)
+                  (assoc-in [player :player-hand] hand)
+                  (assoc-in [player :player-pool] pool))}))
+
+(defn return-from-pool [db player id]
+  (let [hand (conj (get-in db [:players player :player-hand]) id)
+        pool (into [] (remove #{id} (get-in db [:players player :player-pool])))]
+    {:players (-> (:players db)
+                  (assoc-in [player :player-hand] hand)
+                  (assoc-in [player :player-pool] pool))}))
+
+(defn move-card [db player id from to]
+  (let [to-arr (conj (get-in db [:players player to]) id)
+        from-arr (into [] (remove #{id} (get-in db [:players player from])))]
+    {:players (-> (:players db)
+                  (assoc-in [player from] from-arr)
+                  (assoc-in [player to] to-arr))}))
