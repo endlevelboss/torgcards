@@ -6,16 +6,17 @@
 
 (defonce channels (atom #{}))
 
-(defonce players (atom []))
+;; (defonce players (atom []))
 
-(defn temp-send-message! [msg]
+(defn send-message! [msg]
+  (println "Updating players!")
   (doseq [ch @channels]
     (kit/send! ch (pr-str msg))))
 
 (defn connect! [channel]
   (println "Channel opened")
   (swap! channels conj channel)
-  (temp-send-message! @db))
+  (send-message! @db))
 
 (defn disconnect! [channel status]
   (println "Channel closed " status)
@@ -24,25 +25,35 @@
 
 
 (defn add-player [ch player]
-  (let [allowed-players (:player-count @db)]
+  (let [allowed-players (:player-count @db)
+        player-list (:player-list @db #{})]
+    (println "trying " allowed-players (count @channels))
     (cond
-      (nil? allowed-players) (kit/send! ch (pr-str {}))
-      (<= allowed-players (count @players)) (disconnect! ch "Too many players")
+      ;; (some #{player} player-list) (disconnect! ch "Name in use")
+      (nil? allowed-players) (disconnect! ch "Game not started")
+      (< allowed-players (count @channels)) (disconnect! ch "Too many players")
       :else (do
-              (swap! players conj [ch player])
-              (swap! db update-in [:players] conj player)
-              (temp-send-message! @db)))))
+              ;; (swap! players conj [ch player])
+              (swap! db assoc-in [:player-list] (conj player-list player))
+              (send-message! @db)))))
+
+(some #{"jarl"} #{})
 
 (defn reset-db! []
   (reset! db {})
   (reset! channels #{})
-  (reset! players [])
-  (temp-send-message! @db))
+  ;; (reset! players [])
+  (send-message! @db))
 
 (defn message! [channel ws-message]
   (let [message (edn/read-string ws-message)]
-    (swap! db merge @db message)
-    (temp-send-message! message)))
+    ;; (println message)
+    (cond
+      (contains? message :register-player) (add-player channel (:register-player message))
+      (contains? message :register-gm) (println "registering gm")
+      :else (do
+              (reset! db (merge @db message))
+              (send-message! @db)))))
 
 
 
@@ -54,7 +65,7 @@
 
   (reset-db!)
 
-  @players
+  ;; @players
 
   @channels
   (seq {:a 1})
@@ -78,7 +89,7 @@
                                  :cosm-hand []
                                  :cosm-pool [1]
                                  :cosm "panpacifica"}}}]
-    (temp-send-message! msg)
+    (send-message! msg)
     (swap! db merge @db msg))
 
 

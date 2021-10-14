@@ -33,11 +33,17 @@
     deck
     (conj deck card)))
 
-(defn shuffle-discarded-destiny [db]
-  (->> (:discarded-destiny db)
+(defn shuffle-discarded [db pile]
+  (->> (pile db)
        (map #(hash-map :val % :rnd (rand)))
        (sort-by :rnd)
        (map :val)))
+
+(defn shuffle-discarded-destiny [db]
+  (shuffle-discarded db :discarded-destiny))
+
+(defn shuffle-discarded-cosm [db]
+  (shuffle-discarded db :discarded-cosm))
 
 (defn deal-destiny-card [name db]
   (let [not-empty-destiny? (seq (:destiny db))
@@ -45,6 +51,17 @@
         discard (if not-empty-destiny? (:discarded-destiny db) [])
         players (update-in (:players db) [name :player-hand] conj (first destiny))]
     {:destiny (rest destiny) :discarded-destiny discard :players players}))
+
+(defn deal-cosm-card [name db]
+  (let [not-empty-cosm? (seq (:cosm db))
+        cosm (if not-empty-cosm? (:cosm db) (shuffle-discarded-cosm db))
+        discard (if not-empty-cosm? (:discarded-cosm db) [])
+        players (update-in (:players db) [name :cosm-hand] conj (first cosm))]
+    {:cosm (rest cosm) :discarded-cosm discard :players players}))
+
+(defn set-cosm-for-player [name cosm db]
+  (let [players (assoc-in (:players db) [name :cosm] cosm)]
+    {:players players}))
 
 (defn draw-drama-card [db]
   (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
