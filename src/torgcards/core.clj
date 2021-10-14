@@ -65,6 +65,6 @@
 (comment
   (start)
 
-  
+  (map #(hash-map :a :b :c %) [1 2 3])
 
   )

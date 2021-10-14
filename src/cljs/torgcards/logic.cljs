@@ -83,6 +83,22 @@
                   (assoc-in [player :player-hand] hand)
                   (assoc-in [player :player-pool] pool))}))
 
+(defn discard-card [id player db]
+  (let [pool (into [] (remove #{id} (get-in db [:players player :player-pool])))
+        discard (conj (:discarded-destiny db) id)]
+   {:players (-> (:players db)
+                 (assoc-in [player :player-pool] pool))
+    :discarded-destiny discard}))
+
+(defn discard-cosm [id player db]
+  (let [pool (into [] (remove #{id} (get-in db [:players player :cosm-pool])))
+        discard (conj (:discarded-cosm db) id)]
+    {:players (-> (:players db)
+                  (assoc-in [player :cosm-pool] pool))
+     :discarded-cosm discard}))
+
+
+
 (defn move-card [db player id from to]
   (let [to-arr (conj (get-in db [:players player to]) id)
         from-arr (into [] (remove #{id} (get-in db [:players player from])))]

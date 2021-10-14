@@ -88,6 +88,18 @@
    (let [result (logic/return-from-pool db name id)]
      {:send result})))
 
+(rf/reg-event-fx
+ :discard-destiny
+ (fn [{:keys [db]} [_ {:keys [player id]}]]
+   (let [result (logic/discard-card id player db)]
+     {:send result})))
+
+(rf/reg-event-fx
+ :discard-cosm
+ (fn [{:keys [db]} [_ {:keys [player id]}]]
+   (let [result (logic/discard-cosm id player db)]
+     {:send result})))
+
 (rf/reg-sub
  :current-drama
  (fn [db _]
