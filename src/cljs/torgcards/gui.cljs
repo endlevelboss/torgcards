@@ -225,12 +225,13 @@
         other-players (seq (remove #{me} players))
         current-drama @(rf/subscribe [:current-drama])
         all-hands (combine-lists player-hand cosm-hand)
-        all-pools (combine-lists player-pool cosm-pool)]    
+        all-pools (combine-lists player-pool cosm-pool)]
+    (.log js/console "other-players")
     [:div {:style {:position "absolute"}}
      [:img {:style {:position "absolute" :top 0 :left 0}
             :src "img/torg/logo.png" :width 250}]
-     [player-display (first other-players) 85 5 false]
-     [player-display (last other-players) 85 890 true]
+     [player-display other-players 0 85 5 false]
+     [player-display other-players 1 85 890 true]
      [:div {:style {:position "absolute" :top 20 :left 360}}
       [card-display current-drama "img/drama/" nil {:rotation :horizontal :on-click nil}]]
      [:div {:style {:position "absolute" :top 900 :left 20}}
@@ -248,15 +249,14 @@
      ]))
 
 (defn gm-view []
-  (let [db? @(rf/subscribe [:get-db])]
-    ;; (.log js/console (str "empty? " empty-db?))
-    (if (seq db?)
+  (let [db @(rf/subscribe [:get-db])]
+    (if (seq db)
       [gm-play]
       [gm-login])))
 
 (defn player-view []
-  (let [my-name @db/player-name]
-    (if (nil? my-name)
+  (let [player @db/player-name]
+    (if (nil? player)
       [player-login]
       [player-play])))
 

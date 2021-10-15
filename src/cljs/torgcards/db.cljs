@@ -31,8 +31,8 @@
 
 (rf/reg-fx
  :send
- (fn [value]
-   (send-message! value)))
+ (fn [msg]
+   (send-message! msg)))
 
 (rf/reg-fx
  :set-my-name
@@ -43,62 +43,54 @@
 (rf/reg-event-fx
  :set-player-name
  (fn [_ [_ name]]
-   {:send {:register-player name}
+   {:send {:type :register-player :value name}
     :set-my-name name}))
 
 (rf/reg-event-fx
  :draw-drama
- (fn [{:keys [db]} [_ _]]
-   (let [result (logic/draw-drama-card db)]
-     {:send result})))
+ (fn [_ _]
+   {:send {:type :draw-drama :value "hi there"}}))
 
 (rf/reg-event-fx
  :initialize-game
- (fn [_ [_ value]]
-   (let [db (assoc logic/initial-db :player-count value)]
-     {:send db})))
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
 
 (rf/reg-event-fx
  :give-destiny-card
- (fn [{:keys [db]} [_ name]]
-   (let [result (logic/deal-destiny-card name db)]
-     {:send result})))
+ (fn [_ [type name]]
+   {:send {:type type :value name}}))
 
 (rf/reg-event-fx
  :select-cosm
- (fn [{:keys [db]} [_ {:keys [player cosm]}]]
-   (let [result (logic/set-cosm-for-player player cosm db)]
-     {:send result})))
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
 
 (rf/reg-event-fx
  :give-cosm-card
- (fn [{:keys [db]} [_ name]]
-   (let [result (logic/deal-cosm-card name db)]
-     {:send result})))
+ (fn [_ [type name]]
+   {:send {:type type :value name}}))
 
 (rf/reg-event-fx
  :move-card-from-to
- (fn [{:keys [db]} [_ {:keys [name id from to]}]]
-   (let [result (logic/move-card db name id from to)]
-     {:send result})))
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
 
-(rf/reg-event-fx
- :return-card-from-pool
- (fn [{:keys [db]} [_ {:keys [name id]}]]
-   (let [result (logic/return-from-pool db name id)]
-     {:send result})))
+;; (rf/reg-event-fx
+;;  :return-card-from-pool
+;;  (fn [{:keys [db]} [_ {:keys [name id]}]]
+;;    (let [result (logic/return-from-pool db name id)]
+;;      {:send result})))
 
 (rf/reg-event-fx
  :discard-destiny
- (fn [{:keys [db]} [_ {:keys [player id]}]]
-   (let [result (logic/discard-card id player db)]
-     {:send result})))
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
 
 (rf/reg-event-fx
  :discard-cosm
- (fn [{:keys [db]} [_ {:keys [player id]}]]
-   (let [result (logic/discard-cosm id player db)]
-     {:send result})))
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
 
 (rf/reg-sub
  :current-drama

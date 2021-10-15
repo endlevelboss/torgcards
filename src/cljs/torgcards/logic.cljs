@@ -63,11 +63,11 @@
   (let [players (assoc-in (:players db) [name :cosm] cosm)]
     {:players players}))
 
-(defn draw-drama-card [db]
-  (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
-        new-card (first drama)
-        new-deck (rest drama)]
-    {:current-drama new-card :drama new-deck}))
+;; (defn draw-drama-card [db]
+;;   (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
+;;         new-card (first drama)
+;;         new-deck (rest drama)]
+;;     {:current-drama new-card :drama new-deck}))
 
 (defn play-to-pool [db player id]
   (let [pool (conj (get-in db [:players player :player-pool]) id)
