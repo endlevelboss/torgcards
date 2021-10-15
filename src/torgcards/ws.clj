@@ -60,6 +60,10 @@
   (swap! db f value)
   (send-message!))
 
+(defn trade [value]
+  (swap! db assoc :trade value)
+  (send-message!))
+
 (defn message! [channel ws-message]
   (let [{:keys [type value]} (edn/read-string ws-message)]
     (case type
@@ -72,6 +76,7 @@
       :move-card-from-to (update-db value logic/move-card)
       :discard-destiny (update-db value logic/discard-card)
       :discard-cosm (update-db value logic/discard-cosm)
+      :trade-card (trade value)
       (println "unimplemented message " type))))
 
 

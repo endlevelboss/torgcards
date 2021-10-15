@@ -19,7 +19,8 @@
   (let [scale (if (nil? (:scale options)) 1 (:scale options))
         [width height] [292 410]
         [w h] (if (= :horizontal (:rotation options)) [(* scale height) (* scale width)] [(* scale width) (* scale height)])
-        my-style (assoc style :width w :height h)
+        my-style (assoc style :width w :height h
+                        :border-radius 5 :overflow "hidden")
         myclass (if (nil? (:onclick options))
                   {:style my-style}
                   {:style my-style
@@ -186,12 +187,6 @@
         [to from] (if hand? [pool hand] [hand pool])]
     [card-display value path style {:scale 0.75 :onclick (move-card player from to)}]))
 
-;; {:style {:width 100 :height 25 :background-color "lightgray"
-;;          :position "absolute" :top top :left left
-;;          :border-style "solid" :border-radius 5
-;;          :border-width 2 :border-color "black"
-;;          :text-align "center"}}
-
 (defn discard-button [{:keys [value type]} name style]
   (let [s (assoc style :width 25 :height 25 :background-color "red"
                  :border-style "solid" :border-radius 15 :border-width 2 :border-color "black" 
@@ -210,7 +205,8 @@
                    :border-style "solid" :border-radius 15 :border-width 2 :border-color "black"
                    :text-align "center" :margin "auto" :color "white" :user-select "none" :overflow "hidden"
                    :top top)]
-      [:div {:style s}
+      [:div {:style s
+             :on-click #(rf/dispatch [:trade-card {:player1 me :player2 player :card value}])}
        player])))
 
 (defn trade-buttons [player me indx pools]

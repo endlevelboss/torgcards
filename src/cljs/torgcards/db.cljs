@@ -76,6 +76,11 @@
  (fn [_ [type value]]
    {:send {:type type :value value}}))
 
+(rf/reg-event-fx
+ :trade-card
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
+
 ;; (rf/reg-event-fx
 ;;  :return-card-from-pool
 ;;  (fn [{:keys [db]} [_ {:keys [name id]}]]
