@@ -17,6 +17,7 @@
                  [environ "0.5.0"]
                  [cljsjs/react "17.0.2-0"]
                  [cljsjs/react-dom "17.0.2-0"]]
+  :min-lein-version "2.0.0"
   :repl-options {:init-ns torgcards.core}
   :main ^:skip-aot torgcards.core
 
