@@ -60,9 +60,7 @@
   (swap! db f value)
   (send-message!))
 
-(defn trade [value]
-  (swap! db assoc :trade value)
-  (send-message!))
+
 
 (defn message! [channel ws-message]
   (let [{:keys [type value]} (edn/read-string ws-message)]
@@ -76,11 +74,17 @@
       :move-card-from-to (update-db value logic/move-card)
       :discard-destiny (update-db value logic/discard-card)
       :discard-cosm (update-db value logic/discard-cosm)
-      :trade-card (trade value)
+      :trade-card (update-db value logic/start-trade)
+      :suggest-trade (update-db value logic/add-card-to-trade)
+      :accept-trade (update-db value logic/accept-trade)
+      :cancel-trade (update-db value logic/cancel-trade)
       (println "unimplemented message " type))))
 
 
 (comment
+
+
+  (update-db nil logic/accept-trade)
 
   (merge {:a {:b {:c 1 :d 2}}} {:a {:b {:d 3}}})
 

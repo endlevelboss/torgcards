@@ -81,6 +81,11 @@
  (fn [_ [type value]]
    {:send {:type type :value value}}))
 
+(rf/reg-event-fx
+ :suggest-trade
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
+
 ;; (rf/reg-event-fx
 ;;  :return-card-from-pool
 ;;  (fn [{:keys [db]} [_ {:keys [name id]}]]
@@ -97,6 +102,16 @@
  (fn [_ [type value]]
    {:send {:type type :value value}}))
 
+(rf/reg-event-fx
+ :accept-trade
+ (fn [_ [type _]]
+   {:send {:type type :value nil}}))
+
+(rf/reg-event-fx
+ :cancel-trade
+ (fn [_ [type _]]
+   {:send {:type type :value nil}}))
+
 (rf/reg-sub
  :current-drama
  (fn [db _]
@@ -111,6 +126,11 @@
  :player-list
  (fn [db _]
    (:player-list db)))
+
+(rf/reg-sub
+ :trade
+ (fn [db _]
+   (:trade db)))
 
 
 (defn handle-response! [response]

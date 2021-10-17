@@ -140,6 +140,29 @@
    [:option {:value "panpacifica"} "Pan-Pacifica"]
    [:option {:value "tharkold"} "Tharkold"]])
 
+(defn trade-window []
+  (let [{:keys [player1 player2 card1 card2] :as trade} @(rf/subscribe [:trade])
+        me @db/player-name]
+    (if (seq trade)
+      [:div {:style {:position "absolute" :top 0 :left 0 :width 535 :height 320 :background-color "lightblue"
+                     :border-style "solid" :border-color "black" :border-radius 5 :border-width 3
+                     :overflow "hidden"}}
+       [:input {:type :button :value "OK!"
+                :style {:position "absolute" :top 10 :left 5
+                        :width 80 :height 40}
+                :on-click #(if (= me player1)
+                             (rf/dispatch [:accept-trade])
+                             nil)}]
+       [:input {:type :button :value "Cancel"
+                :style {:position "absolute" :top 53 :left 5
+                        :width 80 :height 40}
+                :on-click #(if (= me player1)
+                             (rf/dispatch [:cancel-trade])
+                             nil)}]
+       [card-display card1 "img/destiny/" {:position "absolute" :top 5 :left 90} {:scale 0.75}]
+       [card-display card2 "img/destiny/" {:position "absolute" :top 5 :left 310} {:scale 0.75}]]
+      [:div])))
+
 (defn gm-play []
   (let [current-drama @(rf/subscribe [:current-drama])
         players (seq @(rf/subscribe [:player-list]))]
@@ -149,7 +172,7 @@
      [player-display players 0 187 0 false]
      [player-display-horizontal players 1 0 305 false true]
      [player-display players 2 187 850 true]
-     [:div {:style {:position "absolute" :top 800 :left 300}}
+     [:div {:style {:position "absolute" :top 800 :left 200}}
       [card-display current-drama "img/drama/" nil {:rotation :horizontal}]
       [:div
        {:style {:position "absolute" :top 0 :left 430}
@@ -166,7 +189,10 @@
          ^{:key n} [give-card-button n "Cosm card: " :give-cosm-card])]
       [:div {:style {:position "absolute" :top 70 :left 760}}
        (for [n players]
-         ^{:key n} [cosm-select n])]]]))
+         ^{:key n} [cosm-select n])]
+      ]
+     [:div {:style {:position "absolute" :top 400 :left 275}}
+      [trade-window]]]))
 
 
 (defn move-card [name from to]
@@ -181,21 +207,40 @@
         c (tag-cards cosmcards :cosm)]
     (into c d)))
 
+(defn trade-card []
+  (fn [id]
+    (rf/dispatch [:suggest-trade id])))
+
 (defn display-all-cards [{:keys [value type]} hand? cosm player style]
-  (let [path (if (= :cosm type) (str "img/cosm/" cosm "/") "img/destiny/")
+  (let [trade @(rf/subscribe [:trade])
+        me @db/player-name
+        path (if (= :cosm type) (str "img/cosm/" cosm "/") "img/destiny/")
         [hand pool] (if (= :cosm type) [:cosm-hand :cosm-pool] [:player-hand :player-pool])
-        [to from] (if hand? [pool hand] [hand pool])]
-    [card-display value path style {:scale 0.75 :onclick (move-card player from to)}]))
+        [to from] (if hand? [pool hand] [hand pool])
+        clickfunction (if (seq trade)
+                        (cond
+                          (= me (:player1 trade)) nil
+                          (and (= me (:player2 trade))
+                               (not hand?)) (trade-card)
+                          (and (= me (:player2 trade))
+                               hand?) nil
+                          :else (move-card player from to))
+                        (move-card player from to))]
+    [card-display value path style {:scale 0.75 :onclick clickfunction}]))
 
 (defn discard-button [{:keys [value type]} name style]
   (let [s (assoc style :width 25 :height 25 :background-color "red"
-                 :border-style "solid" :border-radius 15 :border-width 2 :border-color "black" 
-                 :text-align "center" :margin "auto" :color "white" :user-select "none")]
-    [:div {:style s
-           :on-click #(if (= type :cosm)
-                        (rf/dispatch [:discard-cosm {:player name :id value}])
-                        (rf/dispatch [:discard-destiny {:player name :id value}]))} 
-     "X"]))
+                 :border-style "solid" :border-radius 15 :border-width 2 :border-color "black"
+                 :text-align "center" :margin "auto" :color "white" :user-select "none")
+        {:keys [player1 player2]} @(rf/subscribe [:trade])
+        me @db/player-name]
+    (if (or (= me player1) (= me player2))
+      [:div]
+      [:div {:style s
+             :on-click #(if (= type :cosm)
+                          (rf/dispatch [:discard-cosm {:player name :id value}])
+                          (rf/dispatch [:discard-destiny {:player name :id value}]))}
+       "X"])))
 
 (defn trade-button [{:keys [value type]} me player style indx]
   (if (= :cosm type)
@@ -206,13 +251,18 @@
                    :text-align "center" :margin "auto" :color "white" :user-select "none" :overflow "hidden"
                    :top top)]
       [:div {:style s
-             :on-click #(rf/dispatch [:trade-card {:player1 me :player2 player :card value}])}
+             :on-click #(rf/dispatch [:trade-card {:player1 me :player2 player :card1 value}])}
        player])))
 
 (defn trade-buttons [player me indx pools]
-  [:div
-   (for [[n i] (zipmap pools (range (count pools)))]
-     ^{:key n} [trade-button n me player (style-me i 220 0 true) indx])])
+  (let [trade? (seq @(rf/subscribe [:trade]))]
+    (if trade?
+      [:div]
+      [:div
+       (for [[n i] (zipmap pools (range (count pools)))]
+         ^{:key n} [trade-button n me player (style-me i 220 0 true) indx])])))
+
+
 
 (defn player-play []
   (let [me @db/player-name
@@ -242,7 +292,8 @@
      [:div {:style {:position "absolute" :top 623 :left 207}}
       (for [[n i] (zipmap other-players (range (count other-players)))]
         ^{:key n} [trade-buttons n me i all-pools])]
-     ]))
+     [:div {:style {:position "absolute" :top 200 :left 300}}
+      [trade-window]]]))
 
 (defn gm-view []
   (let [db @(rf/subscribe [:get-db])]
@@ -262,8 +313,7 @@
      [gm-view]
      [:div {:style {:position "absolute" :top 0 :left 1100}}
       [database-view]]]
-    [:div 
+    [:div
      [player-view]
      [:div {:style {:position "absolute" :top 0 :left 1100}}
-      [database-view]]])
-  )
+      [database-view]]]))

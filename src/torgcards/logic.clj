@@ -71,3 +71,25 @@
    (assoc db :players (-> (:players db)
                           (assoc-in [player :cosm-pool] pool))
           :discarded-cosm discard)))
+
+(defn add-card-to-trade [db id]
+  (assoc-in db [:trade :card2] id))
+
+(defn swap-cards [db player1 card1 card2]
+  (-> (into [] (remove #{card1} (get-in db [:players player1 :player-pool])))
+      (conj card2)))
+
+(defn accept-trade [db _]
+  (let [{:keys [player1 player2 card1 card2]} (:trade db)
+        pool1 (swap-cards db player1 card1 card2)
+        pool2 (swap-cards db player2 card2 card1)]
+    (-> db
+        (assoc-in [:players player1 :player-pool] pool1)
+        (assoc-in [:players player2 :player-pool] pool2)
+        (assoc-in [:trade] {}))))
+
+(defn cancel-trade [db _]
+  (assoc db :trade {}))
+
+(defn start-trade [db value]
+  (assoc db :trade value))
