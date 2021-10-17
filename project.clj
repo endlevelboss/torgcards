@@ -39,11 +39,11 @@
                      :optimizations :none
                      :source-map true
                      :pretty-print true}}}}
-  :clean-targets
-  ^{:protect false}
-  [:target-path
-   [:cljsbuild :builds :app :compiler :output-dir]
-   [:cljsbuild :builds :app :compiler :output-to]]
+  ;; :clean-targets
+  ;; ^{:protect false}
+  ;; [:target-path
+  ;;  [:cljsbuild :builds :app :compiler :output-dir]
+  ;;  [:cljsbuild :builds :app :compiler :output-to]]
 
   :uberjar-name "torgcards.jar"
 
