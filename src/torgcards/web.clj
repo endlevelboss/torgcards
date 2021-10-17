@@ -1,6 +1,7 @@
 (ns torgcards.web
   (:require [torgcards.core :as core]
-            [environ.core :refer [env]]))
+            [environ.core :refer [env]])
+  (:gen-class))
 
 
 (defn -main [& [port]]

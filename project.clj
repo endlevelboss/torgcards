@@ -19,7 +19,7 @@
                  [cljsjs/react-dom "17.0.2-0"]]
   :min-lein-version "2.0.0"
   :repl-options {:init-ns torgcards.core}
-  :main ^:skip-aot torgcards.core
+  ;; :main ^:skip-aot torgcards.core
 
 
   :resource-paths ["resources" "target/cljsbuild"]
