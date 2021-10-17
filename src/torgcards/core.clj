@@ -6,8 +6,7 @@
             [muuntaja.middleware :as muuntaja]
             [clojure.pprint :as pp]
             [hiccup.page :as page]
-            [torgcards.ws :as ws])
-  (:gen-class))
+            [torgcards.ws :as ws]))
 
 (defn html-handler [request-map]
   ;; (pp/pprint request-map)
@@ -46,16 +45,14 @@
       :method-not-allowed (constantly (response/method-not-allowed "405 Not allowed"))
       :not-acceptable (response/not-acceptable "406 Not acceptable")}))))
 
-(defn -main []
-  (println "Hello World"))
 
 
 
-(defn start []
+(defn start [port]
   (kit/run-server
    (-> #'handler
        wrap-reload)
-   {:port 3000
+   {:port port
     :join? false})
   (println "server started"))
 
@@ -63,7 +60,7 @@
 ;;   (kit/server-stop! @server))
 
 (comment
-  (start)
+  (start 3000)
 
   (map #(hash-map :a :b :c %) [1 2 3])
 

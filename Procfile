@@ -1,0 +1,1 @@
+web: java $JVM_OPTS -cp target/torgcards.jar clojure.main -m torgcards.web

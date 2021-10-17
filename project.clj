@@ -1,5 +1,5 @@
-(defproject torgcards "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+(defproject torgcards "1.0.0"
+  :description "Cardhandler for Torg Eternity"
   :url "http://example.com/FIXME"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
@@ -14,16 +14,19 @@
                  [org.clojure/clojurescript "1.10.764"]
                  [reagent "1.1.0"]
                  [re-frame "1.2.0"]
+                 [environ "0.5.0"]
                  [cljsjs/react "17.0.2-0"]
                  [cljsjs/react-dom "17.0.2-0"]]
   :repl-options {:init-ns torgcards.core}
   :main ^:skip-aot torgcards.core
 
-  
+
   :resource-paths ["resources" "target/cljsbuild"]
   :target-path "target/%s"
 
-  :plugins [[lein-cljsbuild "1.1.8"]]
+  :plugins [[lein-cljsbuild "1.1.8"]
+            [environ/environ.lein "0.2.1"]]
+  :hooks [environ.leiningen.hooks]
 
   :cljsbuild
   {:builds
@@ -40,7 +43,9 @@
   [:target-path
    [:cljsbuild :builds :app :compiler :output-dir]
    [:cljsbuild :builds :app :compiler :output-to]]
-  
+
+  :uberjar-name "torgcards.jar"
+
   :profiles {:dev {:resource-paths ["target"]
                    :clean-targets ^{:protect false} ["target"]}
              :uberjar {:aot :all
