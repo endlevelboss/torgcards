@@ -30,6 +30,7 @@
 ;;     (.-innerHTML)
 ;;     (set! "Hellois Torg-World"))
 
-(mount)
 
-(connect! (str "ws://" (.-host js/location) "/ws") db/handle-response!)
+(do
+  (mount)
+  (connect! (str "ws://" (.-host js/location) "/ws") db/handle-response!))
