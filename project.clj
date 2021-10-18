@@ -22,7 +22,7 @@
   ;; :main ^:skip-aot torgcards.core
 
 
-  :resource-paths ["resources" "target/cljsbuild"]
+  :resource-paths ["resources"]
   :target-path "target/%s"
 
   :plugins [[lein-cljsbuild "1.1.8"]
@@ -32,13 +32,17 @@
   :cljsbuild
   {:builds
    {:app {:source-paths ["src/cljs"]
-          :compiler {:output-to "target/cljsbuild/public/js/app.js"
-                     :output-dir "target/cljsbuild/public/js/out"
+          :compiler {:output-to "resources/public/js/app.js"
+                     :output-dir "resources/public/js/out"
                      :main "torgcards.core"
                      :asset-path "/js/out"
                      :optimizations :none
                      :source-map true
-                     :pretty-print true}}}}
+                     :pretty-print true}}
+    :prod {:source-paths ["src/cljs"]
+           :compiler {:output-to "resources/public/js/app.js"
+                      :main "torgcards.core"
+                      :optimizations :advanced}}}}
   ;; :clean-targets
   ;; ^{:protect false}
   ;; [:target-path
