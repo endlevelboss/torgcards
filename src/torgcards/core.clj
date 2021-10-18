@@ -3,8 +3,8 @@
             [ring.util.http-response :as response]
             [ring.middleware.reload :refer [wrap-reload]]
             [reitit.ring :as reitit]
-            [muuntaja.middleware :as muuntaja]
-            [clojure.pprint :as pp]
+            ;; [muuntaja.middleware :as muuntaja]
+            ;; [clojure.pprint :as pp]
             [hiccup.page :as page]
             [torgcards.ws :as ws]))
 
@@ -54,7 +54,8 @@
        wrap-reload)
    {:port port
     :join? false})
-  (println "server started"))
+  (println "server started")
+  )
 
 ;; (defn stop []
 ;;   (kit/server-stop! @server))

@@ -16,21 +16,23 @@
 ;;   (rf/dispatch [:set-player-name value]))
 
 (defn card-display [id path style options]
-  (let [scale (if (nil? (:scale options)) 1 (:scale options))
-        [width height] [292 410]
-        [w h] (if (= :horizontal (:rotation options)) [(* scale height) (* scale width)] [(* scale width) (* scale height)])
-        my-style (assoc style :width w :height h
-                        :border-radius 5 :overflow "hidden")
-        myclass (if (nil? (:onclick options))
-                  {:style my-style}
-                  {:style my-style
-                   :on-click #((:onclick options) id)})
-        image (str path id ".jpg")]
-    [:div myclass
-     [:img {:src image
-            :width w :height h
-            :style {:position "relative"
-                    :top 0 :left 0}}]]))
+  (if (nil? id)
+    [:div]
+    (let [scale (if (nil? (:scale options)) 1 (:scale options))
+          [width height] [292 410]
+          [w h] (if (= :horizontal (:rotation options)) [(* scale height) (* scale width)] [(* scale width) (* scale height)])
+          my-style (assoc style :width w :height h
+                          :border-radius 5 :overflow "hidden")
+          myclass (if (nil? (:onclick options))
+                    {:style my-style}
+                    {:style my-style
+                     :on-click #((:onclick options) id)})
+          image (str path id ".jpg")]
+      [:div myclass
+       [:img {:src image
+              :width w :height h
+              :style {:position "absolute"
+                      :top 0 :left 0}}]])))
 
 (defn player-login []
   (let [player (r/atom nil)]
@@ -142,6 +144,7 @@
 
 (defn trade-window []
   (let [{:keys [player1 player2 card1 card2] :as trade} @(rf/subscribe [:trade])
+        ready-to-trade? (if (nil? card2) true false)
         me @db/player-name]
     (if (seq trade)
       [:div {:style {:position "absolute" :top 0 :left 0 :width 535 :height 320 :background-color "lightblue"
@@ -150,6 +153,7 @@
        [:input {:type :button :value "OK!"
                 :style {:position "absolute" :top 10 :left 5
                         :width 80 :height 40}
+                :disabled ready-to-trade?
                 :on-click #(if (= me player1)
                              (rf/dispatch [:accept-trade])
                              nil)}]
@@ -173,6 +177,7 @@
      [player-display-horizontal players 1 0 305 false true]
      [player-display players 2 187 850 true]
      [:div {:style {:position "absolute" :top 800 :left 200}}
+      [card-display "back" "img/drama/" nil {:rotation :horizontal}]
       [card-display current-drama "img/drama/" nil {:rotation :horizontal}]
       [:div
        {:style {:position "absolute" :top 0 :left 430}
@@ -279,6 +284,7 @@
      [player-display other-players 0 85 5 false]
      [player-display other-players 1 85 890 true]
      [:div {:style {:position "absolute" :top 20 :left 360}}
+      [card-display "back" "img/drama/" nil {:rotation :horizontal :on-click nil}]
       [card-display current-drama "img/drama/" nil {:rotation :horizontal :on-click nil}]]
      [:div {:style {:position "absolute" :top 900 :left 20}}
       (for [[n i] (zipmap all-hands (range (count all-hands)))]
@@ -311,9 +317,11 @@
   (if (= "true" is-gm?)
     [:div
      [gm-view]
-     [:div {:style {:position "absolute" :top 0 :left 1100}}
-      [database-view]]]
+     [:div {:style {:position "absolute" :top 0 :left 1400}}
+      [database-view]
+      ]]
     [:div
      [player-view]
      [:div {:style {:position "absolute" :top 0 :left 1100}}
-      [database-view]]]))
+      ;; [database-view]
+      ]]))
