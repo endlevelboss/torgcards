@@ -37,9 +37,12 @@
 (defn player-login []
   (let [player (r/atom nil)]
     (fn []
-      [:div
-       [:label "Enter name: "]
-       [:input {:type :text
+      [:div {:style {:position "absolute" :top 400 :left 300
+                     :width 300 }}
+       [:img {:src "img/torg/logo.png" :width 250}]
+       [:div {:style {:position "relative" :left 50}} "Enter character name: "]
+       [:input {:style {:position "relative" :left 30}
+                :type :text
                 :value @player
                 :on-change #(reset! player (-> % .-target .-value))
                 :on-key-press #(if (= 13 (.-charCode %))
