@@ -33,4 +33,4 @@
 
 (do
   (mount)
-  (connect! (str "ws://" (.-host js/location) "/ws") db/handle-response!))
+  (connect! (str "wss://" (.-host js/location) "/ws") db/handle-response!))
