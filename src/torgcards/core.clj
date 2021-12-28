@@ -24,16 +24,19 @@
                 [:input {:id "gm" :type "hidden" :value "true"}]]
                (page/include-js "/js/app.js"))))
 
-(defn ws-handler [req]
-  (kit/as-channel req
-                  {:on-receive (fn [ch message] (ws/message! ch message))
-                   :on-open (fn [ch] (ws/connect! ch))
-                   :on-close (fn [ch status] (ws/disconnect! ch status))}))
+(defn ws-handler [{:keys [path-params] :as req}]
+  (let [email (:email path-params)
+        user (:name path-params)]
+    (kit/as-channel req
+                    {:on-receive (fn [ch message] (ws/message! ch message))
+                     :on-open (fn [ch] (ws/connect! ch email user))
+                     :on-close (fn [ch status] (ws/disconnect! ch status))})))
+
 
 (def routes
   [["/" {:get html-handler}]
    ["/asle" {:get gm-handler}]
-   ["/ws" {:get ws-handler}]])
+   ["/user/:email/:name" {:get ws-handler}]])
 
 
 (def handler
@@ -51,6 +54,7 @@
 
 
 
+
 (defn start []
   (kit/run-server
    (-> #'handler
@@ -59,12 +63,14 @@
     :join? false})
   (println "server started"))
 
-;; (defn stop []
-;;   (kit/server-stop! @server))
 
 (comment
+
+  (seqable? {:a 1})
+
   (start)
 
-  (map #(hash-map :a :b :c %) [1 2 3])
+  (instance? Long 1)
 
+  (map #(hash-map :a :b :c %) [1 2 3])
   )

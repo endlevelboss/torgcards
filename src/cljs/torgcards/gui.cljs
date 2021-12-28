@@ -1,7 +1,8 @@
 (ns torgcards.gui
   (:require [re-frame.core :as rf]
             [reagent.core :as r]
-            [torgcards.db :as db]))
+            [torgcards.db :as db]
+            [torgcards.ws :as ws]))
 
 (def is-gm?
   (try 
@@ -15,8 +16,9 @@
 ;;   (on-key-press event value :login)
 ;;   (rf/dispatch [:set-player-name value]))
 
-(defn card-display [id path style options]
+(defn card-display [card path style options]
   (let [scale (if (nil? (:scale options)) 1 (:scale options))
+        id (if (seqable? card) (:val card) card)
         [width height] [292 410]
         [w h] (if (= :horizontal (:rotation options)) [(* scale height) (* scale width)] [(* scale width) (* scale height)])
         my-style (assoc style :width w :height h
@@ -24,7 +26,7 @@
         myclass (if (nil? (:onclick options))
                   {:style my-style}
                   {:style my-style
-                   :on-click #((:onclick options) id)})
+                   :on-click #((:onclick options) card)})
         image (str path id ".jpg")]
     [:div myclass
      [:img {:src image
@@ -33,15 +35,31 @@
                     :top 0 :left 0}}]]))
 
 (defn player-login []
-  (let [player (r/atom nil)]
+  (let [name (r/atom nil)
+        email (r/atom nil)]
     (fn []
-      [:div
-       [:label "Enter name: "]
+      [:div {:style {:text-align "center"}}
+       [:br]
+       [:br]
+       [:br]
+       [:br]
+       [:img {:src "img/torg/logo.png" :width 250}]
+       [:br]
+       [:br]
+       [:label "name: "]
        [:input {:type :text
-                :value @player
-                :on-change #(reset! player (-> % .-target .-value))
-                :on-key-press #(if (= 13 (.-charCode %))
-                                 (rf/dispatch [:set-player-name @player]))}]])))
+                :value @name
+                :on-change #(reset! name (-> % .-target .-value))}]
+       [:br]
+       [:label "email: "]
+       [:input {:type :text
+                :value @email
+                :on-change #(reset! email (-> % .-target .-value))}]
+       [:br]
+       [:br]
+       [:input {:type :button
+                :value "Login"
+                :on-click #(ws/login @email @name)}]])))
 
 
 
@@ -88,12 +106,12 @@
                                  (rf/dispatch [:initialize-game (int @num)]))}]
        [database-view]])))
 
-(defn give-card-button [name text function]
+(defn give-card-button [[id name] text function]
   (let [value (str text name)]
     [:input {:style {:width 160 :height 80}
              :type :button
              :value value
-             :on-click #(rf/dispatch [function name])}]))
+             :on-click #(rf/dispatch [function id])}]))
 
 (defn nameplate [name top left]
   [:div {:style {:width 100 :height 25 :background-color "lightgray"
@@ -115,20 +133,22 @@
        [:div {:style {:position "absolute" :top 33 :left 0}}
         [other-players-cosm name adj1 adj2 false]]])))
 
-(defn player-display-horizontal [array index top left]
-  (if (>= index (count array))
-    [:div]
-    (let [name (nth array index)]
-      [:div {:style {:position "absolute" :top top :left left}}
-       [nameplate name 0 5]
-       [:div {:style {:position "absolute" :top 35 :left 130}}
-        [other-players-view name 0 168 true]]
-       [:div {:style {:position "absolute" :top 35 :left 0}}
-        [other-players-cosm name 0 168 true]]])))
+(defn player-display-horizontal [[id name] top left]
+  [:div {:style {:position "absolute" :top top :left left}}
+   [nameplate name 0 0]
+   [:div {:style {:position "absolute" :top 35 :left 130}}
+    [other-players-view id 0 168 true]]
+   [:div {:style {:position "absolute" :top 35 :left 0}}
+    [other-players-cosm id 0 168 true]]])
 
-(defn cosm-select [player]
+(defn display-players [players]
+  [:div
+   (for [[p i] (zipmap players (range (count players)))]
+     ^{:key p}[player-display-horizontal p (+ 380 (* i 200)) 0])])
+
+(defn cosm-select [[id name]]
   [:select {:name "cosm"
-            :on-change #(rf/dispatch [:select-cosm {:player player :cosm (-> % .-target .-value)}])
+            :on-change #(rf/dispatch [:select-cosm {:player id :cosm (-> % .-target .-value)}])
             :style {:width 120 :height 30}}
    [:option {:value "nil"} "Select cosm:"]
    [:option {:value "aysle"} "Aysle"]
@@ -165,14 +185,19 @@
 
 (defn gm-play []
   (let [current-drama @(rf/subscribe [:current-drama])
-        players (seq @(rf/subscribe [:player-list]))]
+        players @(rf/subscribe [:player-list])]
     [:div {:style {:position "absolute"}}
-     [:img {:style {:position "absolute" :top 40 :left 20}
-            :src "img/torg/logo.png" :width 250}]
-     [player-display players 0 187 0 false]
-     [player-display-horizontal players 1 0 305 false true]
-     [player-display players 2 187 850 true]
-     [:div {:style {:position "absolute" :top 800 :left 200}}
+     
+     [:div {:style {:position "absolute" :top 60 :left 0}}
+      [card-display current-drama "img/drama/" nil {:rotation :horizontal :on-click nil
+                                                    :scale 0.6}]]
+     [:img {:style {:position "absolute" :top 0 :left 25}
+            :src "img/torg/logo.png" :width 200}]
+     [display-players players]
+    ;;  [player-display players 0 187 0 false]
+    ;;  [player-display-horizontal players 1 0 305 false true]
+    ;;  [player-display players 2 187 850 true]
+     [:div {:style {:position "absolute" :top 60 :left 0}}
       [card-display current-drama "img/drama/" nil {:rotation :horizontal}]
       [:div
        {:style {:position "absolute" :top 0 :left 430}
@@ -189,8 +214,7 @@
          ^{:key n} [give-card-button n "Cosm card: " :give-cosm-card])]
       [:div {:style {:position "absolute" :top 70 :left 760}}
        (for [n players]
-         ^{:key n} [cosm-select n])]
-      ]
+         ^{:key n} [cosm-select n])]]
      [:div {:style {:position "absolute" :top 400 :left 275}}
       [trade-window]]]))
 
@@ -205,41 +229,45 @@
 (defn combine-lists [destinycards cosmcards]
   (let [d (tag-cards destinycards :destiny)
         c (tag-cards cosmcards :cosm)]
-    (into c d)))
+    (into destinycards cosmcards)))
 
 (defn trade-card []
   (fn [id]
     (rf/dispatch [:suggest-trade id])))
 
-(defn display-all-cards [{:keys [value type]} hand? cosm player style]
+(defn cardpath [card]
+  (if (seqable? card)
+    (str "img/cosm/" (:cosm card) "/")
+    "img/destiny/"))
+
+(defn display-all-cards [card hand? cosm player style]
+  (.log js/console (seqable? card))
   (let [trade @(rf/subscribe [:trade])
-        me @db/player-name
-        path (if (= :cosm type) (str "img/cosm/" cosm "/") "img/destiny/")
-        [hand pool] (if (= :cosm type) [:cosm-hand :cosm-pool] [:player-hand :player-pool])
+        path (cardpath card)
+        [hand pool] (if (seqable? card) [:cosm-hand :cosm-pool] [:player-hand :player-pool])
         [to from] (if hand? [pool hand] [hand pool])
         clickfunction (if (seq trade)
                         (cond
-                          (= me (:player1 trade)) nil
-                          (and (= me (:player2 trade))
+                          (= player (:player1 trade)) nil
+                          (and (= player (:player2 trade))
                                (not hand?)) (trade-card)
-                          (and (= me (:player2 trade))
+                          (and (= player (:player2 trade))
                                hand?) nil
                           :else (move-card player from to))
                         (move-card player from to))]
-    [card-display value path style {:scale 0.75 :onclick clickfunction}]))
+    [card-display card path style {:scale 0.75 :onclick clickfunction}]))
 
-(defn discard-button [{:keys [value type]} name style]
+(defn discard-button [card name style]
   (let [s (assoc style :width 25 :height 25 :background-color "red"
                  :border-style "solid" :border-radius 15 :border-width 2 :border-color "black"
                  :text-align "center" :margin "auto" :color "white" :user-select "none")
-        {:keys [player1 player2]} @(rf/subscribe [:trade])
-        me @db/player-name]
-    (if (or (= me player1) (= me player2))
+        {:keys [player1 player2]} @(rf/subscribe [:trade])]
+    (if (or (= name player1) (= name player2))
       [:div]
       [:div {:style s
-             :on-click #(if (= type :cosm)
-                          (rf/dispatch [:discard-cosm {:player name :id value}])
-                          (rf/dispatch [:discard-destiny {:player name :id value}]))}
+             :on-click #(if (seqable? card)
+                          (rf/dispatch [:discard-cosm {:player name :id card}])
+                          (rf/dispatch [:discard-destiny {:player name :id card}]))}
        "X"])))
 
 (defn trade-button [{:keys [value type]} me player style indx]
@@ -265,55 +293,54 @@
 
 
 (defn player-play []
-  (let [me @db/player-name
-        {:keys [player-hand player-pool cosm-hand cosm-pool cosm]} @(rf/subscribe [:player me])
+  (let [{:keys [id name] :as me} @(rf/subscribe [:me])
+        {:keys [player-hand player-pool cosm-hand cosm-pool cosm]} @(rf/subscribe [:player id])
         players @(rf/subscribe [:player-list])
         other-players (seq (remove #{me} players))
         current-drama @(rf/subscribe [:current-drama])
-        all-hands (combine-lists player-hand cosm-hand)
-        all-pools (combine-lists player-pool cosm-pool)]
-    (.log js/console "other-players")
+        all-hands (into player-hand cosm-hand)
+        all-pools (into player-pool cosm-pool)]
+    (.log js/console (str "allhands " all-hands))
     [:div {:style {:position "absolute"}}
-     [:img {:style {:position "absolute" :top 0 :left 0}
-            :src "img/torg/logo.png" :width 250}]
-     [player-display other-players 0 85 5 false]
-     [player-display other-players 1 85 890 true]
-     [:div {:style {:position "absolute" :top 20 :left 360}}
-      [card-display current-drama "img/drama/" nil {:rotation :horizontal :on-click nil}]]
-     [:div {:style {:position "absolute" :top 900 :left 20}}
-      (for [[n i] (zipmap all-hands (range (count all-hands)))]
-        ^{:key n} [display-all-cards n true cosm me (style-me i 220 0 true)])]
-     [:div {:style {:position "absolute" :top 590 :left 20}}
-      (for [[n i] (zipmap all-pools (range (count all-pools)))]
-        ^{:key n} [display-all-cards n false cosm me (style-me i 220 0 true)])]
-     [:div {:style {:position "absolute" :top 593 :left 207}}
-      (for [[n i] (zipmap all-pools (range (count all-pools)))]
-        ^{:key n} [discard-button n me (style-me i 220 0 true)])]
-     [:div {:style {:position "absolute" :top 623 :left 207}}
-      (for [[n i] (zipmap other-players (range (count other-players)))]
-        ^{:key n} [trade-buttons n me i all-pools])]
-     [:div {:style {:position "absolute" :top 200 :left 300}}
-      [trade-window]]]))
+     [:div {:style {:position "absolute" :top 0 :left 0}}
+      [:img {:style {:position "absolute" :top 0 :left 25}
+             :src "img/torg/logo.png" :width 200}]
+      [:div {:style {:position "absolute" :top 60 :left 0}}
+       [card-display current-drama "img/drama/" nil {:rotation :horizontal :on-click nil
+                                                     :scale 0.6}]]
+      ;; [player-display players 0 187 0 false]
+      ]
+     [:div {:style {:position "absolute" :top 250 :left 0}}
+      [:div {:style {:position "absolute" :top 0 :left 20}}
+       (for [[n i] (zipmap all-pools (range (count all-pools)))]
+         ^{:key n} [display-all-cards n false cosm id (style-me i 220 0 true)])]
+      [:div {:style {:position "absolute" :top 310 :left 30}}
+       [:img {:src "img/torg/bonuschart.png" :height 47}]]
+      [:div {:style {:position "absolute" :top 360 :left 20}}
+       (for [[n i] (zipmap all-hands (range (count all-hands)))]
+         ^{:key n} [display-all-cards n true cosm id (style-me i 220 0 true)])]
 
-(defn gm-view []
-  (let [db @(rf/subscribe [:get-db])]
-    (if (seq db)
-      [gm-play]
-      [gm-login])))
+
+      [:div {:style {:position "absolute" :top 3 :left 207}}
+       (for [[n i] (zipmap all-pools (range (count all-pools)))]
+         ^{:key n} [discard-button n id (style-me i 220 0 true)])]]
+    ;;  [:div {:style {:position "absolute" :top 623 :left 207}}
+    ;;   (for [[n i] (zipmap other-players (range (count other-players)))]
+    ;;     ^{:key n} [trade-buttons n id i all-pools])]
+    ;;  [:div {:style {:position "absolute" :top 200 :left 300}}
+    ;;   [trade-window]]
+     ]))
+
 
 (defn player-view []
-  (let [player @db/player-name]
-    (if (nil? player)
-      [player-login]
+  (let [me @(rf/subscribe [:me])]
+    (case (:name me)
+      nil [player-login]
+      "gm" [gm-play]
       [player-play])))
 
 (defn mainview []
-  (if (= "true" is-gm?)
-    [:div
-     [gm-view]
-     [:div {:style {:position "absolute" :top 0 :left 1100}}
-      [database-view]]]
-    [:div
-     [player-view]
-     [:div {:style {:position "absolute" :top 0 :left 1100}}
-      [database-view]]]))
+  [:div
+   [player-view]
+   [:div {:style {:position "absolute" :top 0 :left 1100}}
+    [database-view]]])

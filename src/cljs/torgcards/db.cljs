@@ -5,6 +5,11 @@
 
 (defonce channel (atom nil))
 
+(defonce window-height (atom 0))
+
+(defn set-window-height! [height]
+  (reset! window-height height))
+
 (def player-name (r/atom nil))
 
 (rf/reg-sub
@@ -121,6 +126,11 @@
  :player
  (fn [db [_ name]]
    (get-in db [:players name])))
+
+(rf/reg-sub
+ :me
+ (fn [db _]
+   (get-in db [:you])))
 
 (rf/reg-sub
  :player-list

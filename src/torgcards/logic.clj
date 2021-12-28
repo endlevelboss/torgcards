@@ -1,25 +1,33 @@
 (ns torgcards.logic)
 
+(def cosms ["aysle" "earth" "cyberpapacy" "livingland" "nile" "orrorsh" "panpacifica" "tharkold"])
+
 (defn sorted-random-range [amount]
   (->> (range 1 (inc amount))
        (map #(hash-map :val % :rnd (rand)))
        (sort-by :rnd)
        (map :val)))
 
+(defn random-cosm [cosm]
+  (->> (range 1 11)
+       (map #(hash-map :val % :rnd (rand) :cosm cosm))))
+
+(defn generate-cosms []
+  (reduce #(into %1 (random-cosm %2)) #{} cosms))
+
 (defn initial-db []
   {:destiny (sorted-random-range 60)
    :discarded-destiny []
-   :cosm (sorted-random-range 10)
+   :cosm (generate-cosms)
    :discarded-cosm []
    :drama (sorted-random-range 40)
-   :current-drama nil
-   :player-list #{}})
+   :current-drama nil})
 
 (defn draw-drama-card [db _]
   (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
         new-card (first drama)
         new-deck (rest drama)]
-   (assoc db :current-drama new-card :drama new-deck)))
+    (assoc db :current-drama new-card :drama new-deck)))
 
 (defn shuffle-discarded [db pile]
   (->> (pile db)
@@ -38,39 +46,94 @@
         destiny (if not-empty-destiny? (:destiny db) (shuffle-discarded-destiny db))
         discard (if not-empty-destiny? (:discarded-destiny db) [])
         players (update-in (:players db) [name :player-hand] conj (first destiny))]
-   (assoc db :destiny (rest destiny) :discarded-destiny discard :players players)))
+    (assoc db :destiny (rest destiny) :discarded-destiny discard :players players)))
+
+(defn reshuffle-discarded [db cosm]
+  (let [discarded (filter #(= cosm (:cosm %)) (:discarded-cosm db))
+        reshuffled (map #(assoc % :rnd (rand)) discarded)]
+    (assoc db
+           :discarded-cosm (apply disj (into #{} (:discarded-cosm db)) discarded)
+           :cosm (into (:cosm db) reshuffled))))
+
+(comment
+  
+
+
+
+
+  (-> {:cosm #{{:cosm "a" :val 1} {:cosm "a" :val 2}}
+       :discarded-cosm #{{:cosm "b" :val 3} {:cosm "b" :val 4}}}
+      (reshuffle-discarded "b")
+      :discarded-cosm)
+  (apply disj #{2 3 4} [2 3]))
+
+(defn filter-cosm-cards [db cosm]
+  (filter #(= cosm (:cosm %)) (:cosm db)))
+
+(defn get-cosm-cards [db cosm]
+  (let [not-empty? (seq (filter-cosm-cards db cosm))]
+    (if not-empty?
+      db
+      (reshuffle-discarded db cosm))))
+
+
+
+(defn select-cosm-card [db cosm]
+  (->> (filter #(= cosm (:cosm %)) (:cosm db))
+       (sort-by :rnd)
+       first))
+
 
 (defn deal-cosm-card [db name]
-  (let [not-empty-cosm? (seq (:cosm db))
-        cosm (if not-empty-cosm? (:cosm db) (shuffle-discarded-cosm db))
-        discard (if not-empty-cosm? (:discarded-cosm db) [])
-        players (update-in (:players db) [name :cosm-hand] conj (first cosm))]
-   (assoc db :cosm (rest cosm) :discarded-cosm discard :players players)))
+  (let [cosm-name (get-in db [:players name :cosm])
+        new-db (get-cosm-cards db cosm-name)
+        card (select-cosm-card new-db cosm-name)]
+    (assoc new-db 
+           :cosm (disj (:cosm new-db) card) 
+           :players (update-in (:players new-db) [name :cosm-hand] conj card))))
+
+
+
+(comment
+
+  (conj nil {:a 1})
+  (def c (generate-cosms))
+  (->> (filter #(= "aysle" (:cosm %)) c)
+       (map #(assoc % :rnd (rand))))
+  )
+
 
 (defn set-cosm-for-player [db {:keys [player cosm]}]
   (let [players (assoc-in (:players db) [player :cosm] cosm)]
-   (assoc db :players players)))
+    (assoc db :players players)))
 
 (defn move-card [db {:keys [name id from to] :as v}]
+  (println v)
   (let [to-arr (conj (get-in db [:players name to]) id)
         from-arr (into [] (remove #{id} (get-in db [:players name from])))]
-   (assoc db :players (-> (:players db)
-                          (assoc-in [name from] from-arr)
-                          (assoc-in [name to] to-arr)))))
+    (assoc db :players (-> (:players db)
+                           (assoc-in [name from] from-arr)
+                           (assoc-in [name to] to-arr)))))
+
+(comment
+  (remove #{{:a 1}} [2 3 1 {:a 1}]))
+
 
 (defn discard-card [db {:keys [id player]}]
   (let [pool (into [] (remove #{id} (get-in db [:players player :player-pool])))
         discard (conj (:discarded-destiny db) id)]
-   (assoc db :players (-> (:players db)
-                          (assoc-in [player :player-pool] pool))
-          :discarded-destiny discard)))
+    (assoc db :players (-> (:players db)
+                           (assoc-in [player :player-pool] pool))
+           :discarded-destiny discard)))
+
+
 
 (defn discard-cosm [db {:keys [id player]}]
   (let [pool (into [] (remove #{id} (get-in db [:players player :cosm-pool])))
         discard (conj (:discarded-cosm db) id)]
-   (assoc db :players (-> (:players db)
-                          (assoc-in [player :cosm-pool] pool))
-          :discarded-cosm discard)))
+    (assoc db :players (-> (:players db)
+                           (assoc-in [player :cosm-pool] pool))
+           :discarded-cosm discard)))
 
 (defn add-card-to-trade [db id]
   (assoc-in db [:trade :card2] id))

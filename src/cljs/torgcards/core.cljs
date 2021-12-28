@@ -1,27 +1,18 @@
 (ns torgcards.core
-  (:require [cljs.reader :as edn]
-            [reagent.core :as r]
+  (:require [reagent.core :as r]
             [reagent.dom :as rd]
-            [torgcards.gui :as gui]
-            [torgcards.db :as db]))
+            [torgcards.db :as db]
+            [torgcards.gui :as gui]))
 
 
 
-(defn connect! [url receive-handler]
-  (if-let [chan (js/WebSocket. url)]
-    (do (.log js/console "Connected!")
-        (set! (.-onmessage chan)
-              #(->> %
-                    .-data
-                    edn/read-string
-                    receive-handler))
-        (reset! db/channel chan))
-    (throw (js/Error. "Shite!"))))
 
-
-
+(defn inner-height []
+  (db/set-window-height! (. js/window -innerHeight)))
 
 (defn mount []
+  (.addEventListener js/window "resize" inner-height)
+  (inner-height)
   (rd/render
    [gui/mainview]
    (.getElementById js/document "content")))
@@ -32,4 +23,5 @@
 
 (mount)
 
-(connect! (str "ws://" (.-host js/location) "/ws") db/handle-response!)
+
+
