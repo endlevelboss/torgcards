@@ -5,10 +5,10 @@
 
 (defonce channel (atom nil))
 
-(defonce window-height (atom 0))
+;; (defonce window-height (atom 0))
 
-(defn set-window-height! [height]
-  (reset! window-height height))
+;; (defn set-window-height! [height]
+;;   (reset! window-height height))
 
 (def player-name (r/atom nil))
 
@@ -22,12 +22,23 @@
  (fn [db _]
    (:player-name db)))
 
+(rf/reg-event-db
+ :set-window-height
+ (fn [db [_ hth]]
+   (assoc db :window-height hth)))
+
+(rf/reg-sub
+ :window-height
+ (fn [db _]
+   (:window-height db)))
+
 
 
 (rf/reg-event-db
  :update-db
  (fn [_ [_ vals]]
-   vals))
+   (let [hth (. js/window -innerHeight)]
+     (assoc vals :window-height hth))))
 
 (defn send-message! [msg]
   (if-let [chan @channel]
@@ -44,6 +55,25 @@
  (fn [value]
    (reset! player-name value)))
 
+(rf/reg-sub
+ :display-drama
+ (fn [db _]
+   (:display-drama db)))
+
+(rf/reg-event-fx
+ :add-display-drama
+ (fn [_ _]
+   {:send {:type :add-display-drama :value nil}}))
+
+(rf/reg-event-fx
+ :replace-drama
+ (fn [_ [_ card]]
+   {:send {:type :replace-drama :value card}}))
+
+(rf/reg-event-fx
+ :discard-drama
+ (fn [_ [_ card]]
+   {:send {:type :discard-drama :value card}}))
 
 (rf/reg-event-fx
  :set-player-name

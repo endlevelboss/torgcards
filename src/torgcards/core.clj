@@ -66,7 +66,7 @@
 
 (comment
 
-  (seqable? {:a 1})
+  (seqable? "abba")
 
   (start)
 

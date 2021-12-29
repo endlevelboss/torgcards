@@ -135,12 +135,20 @@
       :suggest-trade (update-db value logic/add-card-to-trade)
       :accept-trade (update-db value logic/accept-trade)
       :cancel-trade (update-db value logic/cancel-trade)
+      :add-display-drama (update-db value logic/add-display-drama)
+      :replace-drama (update-db value logic/replace-drama)
+      :discard-drama (update-db value logic/discard-display)
       (println "unimplemented message " type))))
 
 
 (comment
 
-  (:discarded-cosm @db)
+  (seq [])
+
+  (:drama @db)
+
+  (into '() (into [] (list 1 2 3)))
+
 
   (logic/reshuffle-discarded @db "aysle")
 

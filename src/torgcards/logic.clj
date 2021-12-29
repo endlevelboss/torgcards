@@ -23,11 +23,32 @@
    :drama (sorted-random-range 40)
    :current-drama nil})
 
-(defn draw-drama-card [db _]
+(defn draw-drama [db]
   (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
         new-card (first drama)
         new-deck (rest drama)]
-    (assoc db :current-drama new-card :drama new-deck)))
+    [new-card new-deck]))
+
+(defn draw-drama-card [db _]
+  (let [[card deck] (draw-drama db)]
+    (assoc db :current-drama card :drama deck)))
+
+(defn add-display-drama [db _]
+  (let [[card deck] (draw-drama db)]
+    (-> db
+        (update-in [:display-drama] conj card)
+        (assoc :drama deck))))
+
+(defn discard-display [db card]
+  (let [deck (remove #{card} (:display-drama db))]
+    (assoc db :display-drama deck)))
+
+(defn replace-drama [db card]
+  (let [display-deck (remove #{card} (:display-drama db))
+        drama-deck  (into [card] (:drama db))]
+    (assoc db :drama drama-deck :display-drama display-deck)))
+
+
 
 (defn shuffle-discarded [db pile]
   (->> (pile db)
@@ -156,3 +177,4 @@
 
 (defn start-trade [db value]
   (assoc db :trade value))
+
