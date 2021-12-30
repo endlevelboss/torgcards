@@ -26,7 +26,7 @@
 
 (defn ws-handler [{:keys [path-params] :as req}]
   (let [email (:email path-params)
-        user (:name path-params)]
+        user email]
     (kit/as-channel req
                     {:on-receive (fn [ch message] (ws/message! ch message))
                      :on-open (fn [ch] (ws/connect! ch email user))
@@ -36,7 +36,7 @@
 (def routes
   [["/" {:get html-handler}]
    ["/asle" {:get gm-handler}]
-   ["/user/:email/:name" {:get ws-handler}]])
+   ["/user/:email" {:get ws-handler}]])
 
 
 (def handler

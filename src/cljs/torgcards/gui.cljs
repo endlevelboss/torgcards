@@ -35,8 +35,7 @@
                     :top 0 :left 0}}]]))
 
 (defn player-login []
-  (let [name (r/atom nil)
-        email (r/atom nil)]
+  (let [email (r/atom nil)]
     (fn []
       [:div {:style {:text-align "center"}}
        [:br]
@@ -46,11 +45,6 @@
        [:img {:src "img/torg/logo.png" :width 250}]
        [:br]
        [:br]
-       [:label "name: "]
-       [:input {:type :text
-                :value @name
-                :on-change #(reset! name (-> % .-target .-value))}]
-       [:br]
        [:label "email: "]
        [:input {:type :text
                 :value @email
@@ -59,7 +53,7 @@
        [:br]
        [:input {:type :button
                 :value "Login"
-                :on-click #(ws/login @email @name)}]])))
+                :on-click #(ws/login @email)}]])))
 
 
 
@@ -118,7 +112,7 @@
                  :position "absolute" :top top :left left
                  :border-style "solid" :border-radius 5
                  :border-width 2 :border-color "black"
-                 :text-align "center"}}
+                 :text-align "center" :overflow "hidden"}}
    name])
 
 (defn player-display [array index top left flip?]
