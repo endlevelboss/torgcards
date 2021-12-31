@@ -3,21 +3,17 @@
             [ring.util.http-response :as response]
             [ring.middleware.reload :refer [wrap-reload]]
             [reitit.ring :as reitit]
-            [muuntaja.middleware :as muuntaja]
-            [clojure.pprint :as pp]
             [hiccup.page :as page]
             [torgcards.ws :as ws])
   (:gen-class))
 
 (defn html-handler [request-map]
-  ;; (pp/pprint request-map)
   (response/ok
    (page/html5 [:body
                 [:div {:id "content"} "Lodading script"]]
                (page/include-js "/js/app.js"))))
 
 (defn gm-handler [request-map]
-  ;; (pp/pprint request-map)
   (response/ok
    (page/html5 [:body
                 [:div {:id "content"} "Loading script"]
@@ -31,13 +27,10 @@
                     {:on-receive (fn [ch message] (ws/message! ch message))
                      :on-open (fn [ch] (ws/connect! ch email user))
                      :on-close (fn [ch status] (ws/disconnect! ch status))})))
-
-
 (def routes
   [["/" {:get html-handler}]
    ["/asle" {:get gm-handler}]
    ["/user/:email" {:get ws-handler}]])
-
 
 (def handler
   (reitit/ring-handler
@@ -52,9 +45,6 @@
 (defn -main []
   (println "Hello World"))
 
-
-
-
 (defn start []
   (kit/run-server
    (-> #'handler
@@ -66,11 +56,6 @@
 
 (comment
 
-  (seqable? "abba")
-
   (start)
 
-  (instance? Long 1)
-
-  (map #(hash-map :a :b :c %) [1 2 3])
   )

@@ -1,15 +1,8 @@
 (ns torgcards.db
   (:require [re-frame.core :as rf]
-            [reagent.core :as r]
-            [torgcards.logic :as logic]))
+            [reagent.core :as r]))
 
 (defonce channel (atom nil))
-
-;; (defonce window-height (atom 0))
-
-;; (defn set-window-height! [height]
-;;   (reset! window-height height))
-
 (def player-name (r/atom nil))
 
 (rf/reg-sub
@@ -31,8 +24,6 @@
  :window-height
  (fn [db _]
    (:window-height db)))
-
-
 
 (rf/reg-event-db
  :update-db
@@ -121,12 +112,6 @@
  (fn [_ [type value]]
    {:send {:type type :value value}}))
 
-;; (rf/reg-event-fx
-;;  :return-card-from-pool
-;;  (fn [{:keys [db]} [_ {:keys [name id]}]]
-;;    (let [result (logic/return-from-pool db name id)]
-;;      {:send result})))
-
 (rf/reg-event-fx
  :discard-destiny
  (fn [_ [type value]]
@@ -181,7 +166,6 @@
  :set-magnify
  (fn [db [_ card]]
    (assoc db :magnify card)))
-
 
 (defn handle-response! [response]
   (.log js/console "got an update")

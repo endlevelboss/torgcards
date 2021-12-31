@@ -6,19 +6,6 @@
        (sort-by :rnd)
        (map :val)))
 
-(defn deal-beginner-hand [players gamestate]
-  (if-let [player (first players)]
-    (let [player-destiny (take 4 (:destiny gamestate))
-          new-destiny (drop 4 (:destiny gamestate))
-          player-cosm (take 1 (:cosm gamestate))
-          new-cosm (drop 1 (:cosm gamestate))
-          new-gamestate (-> gamestate
-                            (assoc player {:destiny player-destiny
-                                           :cosm player-cosm})
-                            (assoc :destiny new-destiny :cosm new-cosm))]
-      (recur (rest players) new-gamestate))
-    gamestate))
-
 (def initial-db
   {:destiny (sorted-random-range 60)
    :discarded-destiny []
@@ -27,11 +14,6 @@
    :drama (sorted-random-range 40)
    :current-drama nil
    :setting nil})
-
-(defn check-for-nil [card deck]
-  (if (nil? card)
-    deck
-    (conj deck card)))
 
 (defn shuffle-discarded [db pile]
   (->> (pile db)
@@ -63,26 +45,6 @@
   (let [players (assoc-in (:players db) [name :cosm] cosm)]
     {:players players}))
 
-;; (defn draw-drama-card [db]
-;;   (let [drama (if (seq (:drama db)) (:drama db) (sorted-random-range 40))
-;;         new-card (first drama)
-;;         new-deck (rest drama)]
-;;     {:current-drama new-card :drama new-deck}))
-
-(defn play-to-pool [db player id]
-  (let [pool (conj (get-in db [:players player :player-pool]) id)
-        hand (into [] (remove #{id} (get-in db [:players player :player-hand])))]
-    {:players (-> (:players db)
-                  (assoc-in [player :player-hand] hand)
-                  (assoc-in [player :player-pool] pool))}))
-
-(defn return-from-pool [db player id]
-  (let [hand (conj (get-in db [:players player :player-hand]) id)
-        pool (into [] (remove #{id} (get-in db [:players player :player-pool])))]
-    {:players (-> (:players db)
-                  (assoc-in [player :player-hand] hand)
-                  (assoc-in [player :player-pool] pool))}))
-
 (defn discard-card [id player db]
   (let [pool (into [] (remove #{id} (get-in db [:players player :player-pool])))
         discard (conj (:discarded-destiny db) id)]
@@ -96,8 +58,6 @@
     {:players (-> (:players db)
                   (assoc-in [player :cosm-pool] pool))
      :discarded-cosm discard}))
-
-
 
 (defn move-card [db player id from to]
   (let [to-arr (conj (get-in db [:players player to]) id)

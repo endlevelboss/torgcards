@@ -1,6 +1,5 @@
 (ns torgcards.core
-  (:require [reagent.core :as r]
-            [reagent.dom :as rd]
+  (:require [reagent.dom :as rd]
             [re-frame.core :as rf]
             [torgcards.db :as db]
             [torgcards.gui :as gui]))
@@ -17,10 +16,6 @@
   (rd/render
    [gui/mainview]
    (.getElementById js/document "content")))
-
-;; (-> (.getElementById js/document "content")
-;;     (.-innerHTML)
-;;     (set! "Hellois Torg-World"))
 
 (mount)
 

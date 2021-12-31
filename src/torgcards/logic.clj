@@ -48,8 +48,6 @@
         drama-deck  (into [card] (:drama db))]
     (assoc db :drama drama-deck :display-drama display-deck)))
 
-
-
 (defn shuffle-discarded [db pile]
   (->> (pile db)
        (map #(hash-map :val % :rnd (rand)))
@@ -76,18 +74,6 @@
            :discarded-cosm (apply disj (into #{} (:discarded-cosm db)) discarded)
            :cosm (into (:cosm db) reshuffled))))
 
-(comment
-  
-
-
-
-
-  (-> {:cosm #{{:cosm "a" :val 1} {:cosm "a" :val 2}}
-       :discarded-cosm #{{:cosm "b" :val 3} {:cosm "b" :val 4}}}
-      (reshuffle-discarded "b")
-      :discarded-cosm)
-  (apply disj #{2 3 4} [2 3]))
-
 (defn filter-cosm-cards [db cosm]
   (filter #(= cosm (:cosm %)) (:cosm db)))
 
@@ -97,13 +83,10 @@
       db
       (reshuffle-discarded db cosm))))
 
-
-
 (defn select-cosm-card [db cosm]
   (->> (filter #(= cosm (:cosm %)) (:cosm db))
        (sort-by :rnd)
        first))
-
 
 (defn deal-cosm-card [db name]
   (let [cosm-name (get-in db [:players name :cosm])
@@ -112,17 +95,6 @@
     (assoc new-db 
            :cosm (disj (:cosm new-db) card) 
            :players (update-in (:players new-db) [name :cosm-hand] conj card))))
-
-
-
-(comment
-
-  (conj nil {:a 1})
-  (def c (generate-cosms))
-  (->> (filter #(= "aysle" (:cosm %)) c)
-       (map #(assoc % :rnd (rand))))
-  )
-
 
 (defn set-cosm-for-player [db {:keys [player cosm]}]
   (let [players (assoc-in (:players db) [player :cosm] cosm)]
@@ -136,18 +108,12 @@
                            (assoc-in [name from] from-arr)
                            (assoc-in [name to] to-arr)))))
 
-(comment
-  (remove #{{:a 1}} [2 3 1 {:a 1}]))
-
-
 (defn discard-card [db {:keys [id player]}]
   (let [pool (into [] (remove #{id} (get-in db [:players player :player-pool])))
         discard (conj (:discarded-destiny db) id)]
     (assoc db :players (-> (:players db)
                            (assoc-in [player :player-pool] pool))
            :discarded-destiny discard)))
-
-
 
 (defn discard-cosm [db {:keys [id player]}]
   (let [pool (into [] (remove #{id} (get-in db [:players player :cosm-pool])))

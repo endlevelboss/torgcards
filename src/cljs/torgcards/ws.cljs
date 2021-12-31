@@ -13,7 +13,6 @@
         (reset! db/channel chan))
     (throw (js/Error. "Shite!"))))
 
-
 (defn login [email]
   (let [url (str "ws://" (.-host js/location) "/user/" email)]
     (.log js/console url)
