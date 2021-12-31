@@ -368,17 +368,18 @@
         phand-top (max 250 (- w-height 693))
         players @(rf/subscribe [:player-list])
         other-players (seq (remove #{[id name]} players))
-        current-drama @(rf/subscribe [:current-drama])
+        current @(rf/subscribe [:current-drama])
+        current-drama(if (nil? current) "back" current)
         all-hands (into player-hand cosm-hand)
         all-pools (into player-pool cosm-pool)]
-    (.log js/console w-height)
+    (.log js/console (str current-drama))
     [:div {:style {:position "absolute"}}
      [:div {:style {:position "absolute" :top 0 :left 0}}
       [:img {:style {:position "absolute" :top 0 :left 25}
              :src "img/torg/logo.png" :width 200}]
-      [:div {:style {:position "absolute" :top 60 :left 0}}
-       [card-display current-drama "img/drama/" nil {:rotation :horizontal :on-click nil
-                                                     :scale 0.6}]]]
+      [:img
+       {:src (str "img/drama/" current-drama ".jpg") :width 246
+        :style {:position "absolute" :top 60 :left 0}}]]
      [:div {:style {:position "absolute" :top phand-top :left 0}}
       [:div {:style {:position "absolute" :top -10 :left 10}
              :zindex -1}
