@@ -172,6 +172,16 @@
  (fn [db _]
    (:trade db)))
 
+(rf/reg-sub
+ :magnify
+ (fn [db _]
+   (:magnify db)))
+
+(rf/reg-event-db
+ :set-magnify
+ (fn [db [_ card]]
+   (assoc db :magnify card)))
+
 
 (defn handle-response! [response]
   (.log js/console "got an update")

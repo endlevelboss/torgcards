@@ -139,7 +139,9 @@
                (str "img/cosm/" (:cosm card) "/" (:val card) ".jpg")
                (str "img/destiny/" card ".jpg"))]
     [:img {:src path :width 100
-           :style {:position "absolute" :left (* 60 left)}}]))
+           :style {:position "absolute" :left (* 60 left)}
+           :on-mouse-enter #(rf/dispatch [:set-magnify card])
+           :on-mouse-leave #(rf/dispatch [:set-magnify nil])}]))
 
 (defn player-display-horizontal [[id name] top left]
   (let [{:keys [player-hand player-pool cosm-hand cosm-pool]} @(rf/subscribe [:player id])
@@ -155,12 +157,23 @@
       (for [[n i] (zipmap pool (range (count pool)))]
         ^{:key i} [front-display n i])]]))
 
+(defn display-magnified []
+  (let [card @(rf/subscribe [:magnify])
+        card-info (if (seqable? card)
+                    (str "img/cosm/" (:cosm card) "/" (:val card) ".jpg")
+                    (str "img/destiny/" card ".jpg"))]
+    (if (nil? card)
+      [:div]
+      [:img {:src card-info :width 219}])))
+
 (defn display-players [players]
   [:div
    (for [[p i] (zipmap players (range (count players)))]
-     ^{:key p} [player-display-horizontal p (* i 175) 0])])
+     ^{:key p} [player-display-horizontal p (* i 175) 0])
+   [:div {:style {:position "absolute" :top 0 :left 500}}
+    [display-magnified]]])
 
-(defn cosm-select [[id name]]
+(defn cosm-select [[id _]]
   [:select {:name "cosm"
             :on-change #(rf/dispatch [:select-cosm {:player id :cosm (-> % .-target .-value)}])
             :style {:width 120 :height 30}}
@@ -175,8 +188,8 @@
    [:option {:value "tharkold"} "Tharkold"]])
 
 (defn trade-window []
-  (let [{:keys [player1 player2 card1 card2] :as trade} @(rf/subscribe [:trade])
-        {:keys [id name]} @(rf/subscribe [:me])]
+  (let [{:keys [player1 _ card1 card2] :as trade} @(rf/subscribe [:trade])
+        {:keys [id _]} @(rf/subscribe [:me])]
     ;; (.log js/console (str "id " me))
     ;; (.log js/console (str  player1))
     (if (seq trade)
@@ -321,8 +334,7 @@
       [:div {:style s
              :on-click #(if (seqable? card)
                           (rf/dispatch [:discard-cosm {:player name :id card}])
-                          (rf/dispatch [:discard-destiny {:player name :id card}]))}
-       "X"])))
+                          (rf/dispatch [:discard-destiny {:player name :id card}]))}])))
 
 (defn trade-button [card me [id name] style indx]
   (if (seqable? card)
@@ -401,10 +413,7 @@
        (for [[n i] (zipmap other-players (range (count other-players)))]
          ^{:key n} [trade-buttons n id i all-pools])]]
      [:div {:style {:position "absolute" :top 0 :left 300}}
-      [extra-display other-players]]
-    ;;  [:div {:style {:position "absolute" :top 0 :left 300}}
-    ;;   [trade-window]]
-     ]))
+      [extra-display other-players]]]))
 
 
 (defn player-view []
@@ -416,7 +425,4 @@
 
 (defn mainview []
   [:div
-   [player-view]
-  ;;  [:div {:style {:position "absolute" :top 0 :left 1100}}
-  ;;   [database-view]]
-   ])
+   [player-view]])
