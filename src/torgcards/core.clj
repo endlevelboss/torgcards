@@ -54,6 +54,15 @@
   (println "server started"))
 
 
+(defn fizzbuzz [n] 
+  (let [fizzes (cycle ["" "" "Fizz"]) 
+        buzzes (cycle ["" "" "" "" "Buzz"]) 
+        words (map str fizzes buzzes) 
+        numbers (map str (rest (range)))] 
+    (take n (map max words numbers))))
+
+
+
 (comment
 
   (start)
