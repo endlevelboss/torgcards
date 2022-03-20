@@ -54,17 +54,45 @@
   (println "server started"))
 
 
-(defn fizzbuzz [n] 
-  (let [fizzes (cycle ["" "" "Fizz"]) 
-        buzzes (cycle ["" "" "" "" "Buzz"]) 
-        words (map str fizzes buzzes) 
-        numbers (map str (rest (range)))] 
-    (take n (map max words numbers))))
 
+(defn temp-trade [player1 player2 card1 card2]
+  (let [db @ws/db
+        dis (:discarded-destiny db)
+        new-dis (into [] (disj (into #{} dis) card1 card2))]
+    (reset! ws/db
+            (-> (update-in db [:players player1 :player-pool] conj card2)
+                (update-in [:players player2 :player-pool] conj card1)
+                (assoc :discarded-destiny new-dis)))
+    (ws/send-message!)))
+
+(defn gus->jarl [card1 card2]
+  (temp-trade "gustav.bilben@gmail.com" "jarl@jarl.ninja" card1 card2))
+
+(defn gus->mag [card1 card2]
+  (temp-trade "gustav.bilben@gmail.com" "mag-a@online.no" card1 card2))
+
+(defn jarl->mag [card1 card2]
+  (temp-trade "jarl@jarl.ninja" "mag-a@online.no" card1 card2))
 
 
 (comment
 
+  (gus->jarl 22 31)
+  (jarl->mag 22 13)
+
   (start)
 
+  (-> @ws/db
+      :discarded-destiny
+      clojure.pprint/pprint)
+
+  (->> (assoc @ws/db :names ws/player-names)
+       (reset! ws/db))
+
+  (->> (assoc-in @ws/db [:players "jarl@jarl.ninja" :cosm-pool] [])
+       (reset! ws/db))
+
+  (ws/send-message!)
+
+  (reset! ws/db {})
   )

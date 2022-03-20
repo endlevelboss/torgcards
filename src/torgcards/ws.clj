@@ -15,6 +15,14 @@
                "gustav.bilben@gmail.com"
                "mag-a@online.no"})
 
+(def player-names (zipmap ["jarl@jarl.ninja"
+                           "gustav.bilben@gmail.com"
+                           "mag-a@online.no"] 
+                          ["jarlibeibi" "gussibeibi" "maggibeibi"]))
+
+
+
+
 (def gm "tonyasle@gmail.com")
 
 (defn send-to-player [ch msg]
@@ -28,9 +36,11 @@
 (defn send-db! []
   (if (seq @db)
     @db
-    (let [new-db (logic/initial-db)]
+    (let [new-db (-> (logic/initial-db)
+                     (assoc :names player-names))]
       (reset! db new-db)
       new-db)))
+
 
 (defn send-message! []
   (let [msg (send-db!)]

@@ -10,10 +10,10 @@
  (fn [db _]
    db))
 
-(rf/reg-sub
- :player-name
- (fn [db _]
-   (:player-name db)))
+;; (rf/reg-sub
+;;  :player-name
+;;  (fn [db _]
+;;    (:player-name db)))
 
 (rf/reg-event-db
  :set-window-height
@@ -166,6 +166,11 @@
  :set-magnify
  (fn [db [_ card]]
    (assoc db :magnify card)))
+
+(rf/reg-sub
+ :player-name
+ (fn [db [_ name]]
+   (get-in db [:names name])))
 
 (defn handle-response! [response]
   (.log js/console "got an update")

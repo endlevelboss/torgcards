@@ -49,19 +49,21 @@
      :top (+ top-offset (* top scale i)) :left (+ left-offset (* left scale i))}))
 
 (defn give-card-button [[id name] text function]
-  (let [value (str text name)]
+  (let [myname @(rf/subscribe [:player-name name])
+        value (str text myname)]
     [:input {:style {:width 160 :height 80}
              :type :button
              :value value
              :on-click #(rf/dispatch [function id])}]))
 
 (defn nameplate [name top left]
-  [:div {:style {:width 100 :height 25 :background-color "lightgray"
-                 :position "absolute" :top top :left left
-                 :border-style "solid" :border-radius 5
-                 :border-width 2 :border-color "black"
-                 :text-align "center" :overflow "hidden"}}
-   name])
+  (let [myname @(rf/subscribe [:player-name name])]
+    [:div {:style {:width 100 :height 25 :background-color "lightgray"
+                   :position "absolute" :top top :left left
+                   :border-style "solid" :border-radius 5
+                   :border-width 2 :border-color "black"
+                   :text-align "center" :overflow "hidden"}}
+     myname]))
 
 (defn back-display [card left]
   (let [path (if (seqable? card)
@@ -163,22 +165,19 @@
                         :on-click #(if (= "gm" name)
                                      (rf/dispatch [:replace-drama n])
                                      nil)}])
-     (for [[n i] (zipmap cards (range (count cards)))]
-       ^{:key n} [:div {:style {:position "absolute" :top 5 :left (+ 5 (* 252 i))
-                                :width 25 :height 25 :background-color "red"
-                                :border-style "solid" :border-radius 15 :border-width 2 :border-color "black"
-                                :text-align "center" :margin "auto" :color "white" :user-select "none"}
-                        :on-click #(if (= "gm" name)
-                                     (rf/dispatch [:discard-drama n])
-                                     nil)}])]))
+     (if (= "gm" name)
+       (for [[n i] (zipmap cards (range (count cards)))]
+         ^{:key n} [:img {:style {:position "absolute" :top 5 :left (+ 5 (* 252 i))
+                                  :user-select "none"}
+                          :src "img/torg/discard.png" :width 35
+                          :on-click #(rf/dispatch [:discard-drama n])}])
+       nil)]))
 
 
 (defn extra-display [players]
-  (let [drama @(rf/subscribe [:display-drama])
-        trade @(rf/subscribe [:trade])]
+  (let [drama @(rf/subscribe [:display-drama])]
     (cond
       (seq drama) [display-drama]
-      (seq trade) [trade-window]
       :else (display-players players))))
 
 (defn gm-play []
@@ -228,32 +227,17 @@
 
 (defn display-all-cards [card hand? cosm player style]
   (.log js/console (seqable? card))
-  (let [trade @(rf/subscribe [:trade])
-        path (cardpath card)
+  (let [path (cardpath card)
         [hand pool] (if (seqable? card) [:cosm-hand :cosm-pool] [:player-hand :player-pool])
-        [to from] (if hand? [pool hand] [hand pool])
-        clickfunction (if (seq trade)
-                        (cond
-                          (= player (:player1 trade)) nil
-                          (and (= player (:player2 trade))
-                               (not hand?)) (trade-card)
-                          (and (= player (:player2 trade))
-                               hand?) nil
-                          :else (move-card player from to))
-                        (move-card player from to))]
-    [card-display card path style {:scale 0.75 :onclick clickfunction}]))
+        [to from] (if hand? [pool hand] [hand pool])]
+    [card-display card path style {:scale 0.75 :onclick (move-card player from to)}]))
 
 (defn discard-button [card name style]
-  (let [s (assoc style :width 25 :height 25 :background-color "red"
-                 :border-style "solid" :border-radius 15 :border-width 2 :border-color "black"
-                 :text-align "center" :margin "auto" :color "white" :user-select "none")
-        {:keys [player1 player2]} @(rf/subscribe [:trade])]
-    (if (or (= name player1) (= name player2))
-      [:div]
-      [:div {:style s
-             :on-click #(if (seqable? card)
-                          (rf/dispatch [:discard-cosm {:player name :id card}])
-                          (rf/dispatch [:discard-destiny {:player name :id card}]))}])))
+  [:img {:style style
+         :on-click #(if (seqable? card)
+                      (rf/dispatch [:discard-cosm {:player name :id card}])
+                      (rf/dispatch [:discard-destiny {:player name :id card}]))
+         :src "img/torg/discard.png" :width 35}])
 
 (defn trade-button [card me [id name] style indx]
   (if (seqable? card)
@@ -324,12 +308,13 @@
       [:div {:style {:position "absolute" :top 360 :left 20}}
        (for [[n i] (zipmap all-hands (range (count all-hands)))]
          ^{:key n} [display-all-cards n true cosm id (style-me i 220 0 true)])]
-      [:div {:style {:position "absolute" :top 3 :left 207}}
+      [:div {:style {:position "absolute" :top 3 :left 201}}
        (for [[n i] (zipmap all-pools (range (count all-pools)))]
          ^{:key n} [discard-button n id (style-me i 220 0 true)])]
-      [:div {:style {:position "absolute" :top 33 :left 207}}
-       (for [[n i] (zipmap other-players (range (count other-players)))]
-         ^{:key n} [trade-buttons n id i all-pools])]]
+      ;; [:div {:style {:position "absolute" :top 33 :left 207}}
+      ;;  (for [[n i] (zipmap other-players (range (count other-players)))]
+      ;;    ^{:key n} [trade-buttons n id i all-pools])]
+      ]
      [:div {:style {:position "absolute" :top 0 :left 300}}
       [extra-display other-players]]]))
 
