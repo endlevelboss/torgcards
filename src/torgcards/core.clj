@@ -4,7 +4,8 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [reitit.ring :as reitit]
             [hiccup.page :as page]
-            [torgcards.ws :as ws])
+            [torgcards.ws :as ws]
+            [clojure.edn :as edn])
   (:gen-class))
 
 (defn html-handler [request-map]
@@ -53,37 +54,58 @@
     :join? false})
   (println "server started"))
 
+(defn remove-and-add [pool outcard incard]
+  (let [p (into #{} pool)]
+    (conj (into [] (disj p outcard)) incard)))
 
-
-(defn temp-trade [player1 player2 card1 card2]
+(defn trade [player1 player2 card1 card2]
   (let [db @ws/db
-        dis (:discarded-destiny db)
-        new-dis (into [] (disj (into #{} dis) card1 card2))]
-    (reset! ws/db
-            (-> (update-in db [:players player1 :player-pool] conj card2)
-                (update-in [:players player2 :player-pool] conj card1)
-                (assoc :discarded-destiny new-dis)))
-    (ws/send-message!)))
+        p1 (get-in db [:players player1 :player-pool])
+        p2 (get-in db [:players player2 :player-pool])]
+    (if (and (some #{card1} p1)
+             (some #{card2} p2))
+      (let [new1 (remove-and-add p1 card1 card2)
+            new2 (remove-and-add p2 card2 card1)]
+        (reset! ws/db
+                (-> (assoc-in db [:players player1 :player-pool] new1)
+                    (assoc-in [:players player2 :player-pool] new2)))
+        (ws/send-message!))
+      nil)))
+
+
 
 (defn gus->jarl [card1 card2]
-  (temp-trade "gustav.bilben@gmail.com" "jarl@jarl.ninja" card1 card2))
+  (trade "gustav.bilben@gmail.com" "jarl@jarl.ninja" card1 card2))
 
 (defn gus->mag [card1 card2]
-  (temp-trade "gustav.bilben@gmail.com" "mag-a@online.no" card1 card2))
+  (trade "gustav.bilben@gmail.com" "mag-a@online.no" card1 card2))
 
 (defn jarl->mag [card1 card2]
-  (temp-trade "jarl@jarl.ninja" "mag-a@online.no" card1 card2))
+  (trade "jarl@jarl.ninja" "mag-a@online.no" card1 card2))
+
+
+(defn save-db []
+  (spit "card-state.edn" @ws/db))
+
+(defn load-db []
+  (let [f (-> (slurp "card-state.edn")
+              edn/read-string)]
+    (reset! ws/db f)
+    (ws/send-message!)))
+
 
 
 (comment
+  (load-db)
+  
+  (slurp "card-state.edn")
 
-  (gus->jarl 22 31)
+  (gus->jarl 9 5)
   (jarl->mag 22 13)
 
   (start)
 
   (-> @ws/db
-      :discarded-destiny
       clojure.pprint/pprint)
 
   (->> (assoc @ws/db :names ws/player-names)
