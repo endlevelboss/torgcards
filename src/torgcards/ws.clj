@@ -18,7 +18,7 @@
 (def player-names (zipmap ["jarl@jarl.ninja"
                            "gustav.bilben@gmail.com"
                            "mag-a@online.no"] 
-                          ["jarlibeibi" "gussibeibi" "maggibeibi"]))
+                          ["McInnes" "Igor" "Cletus"]))
 
 
 
@@ -96,4 +96,5 @@
       :add-display-drama (update-db value logic/add-display-drama)
       :replace-drama (update-db value logic/replace-drama)
       :discard-drama (update-db value logic/discard-display)
-      (println "unimplemented message " type))))
+      :set-cosm-tent (update-db value logic/set-cosm-tent)
+      (println "unimplemented message " type value))))

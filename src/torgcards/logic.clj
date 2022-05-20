@@ -1,4 +1,5 @@
-(ns torgcards.logic)
+(ns torgcards.logic
+  (:require [torgcards.data :as d]))
 
 (def cosms ["aysle" "earth" "cyberpapacy" "livingland" "nile" "orrorsh" "panpacifica" "tharkold"])
 
@@ -144,3 +145,6 @@
 (defn start-trade [db value]
   (assoc db :trade value))
 
+
+(defn set-cosm-tent [db {:keys [cosm]}]
+  (assoc db :tent (get d/tentdata cosm)))

@@ -125,6 +125,65 @@
    [:option {:value "panpacifica"} "Pan-Pacifica"]
    [:option {:value "tharkold"} "Tharkold"]])
 
+(defn set-cosm-tent []
+  [:select {:name "cosm"
+            :on-change #(rf/dispatch [:set-cosm-tent {:cosm (-> % .-target .-value)}])
+            :style {:width 120 :height 30}}
+   [:option {:value "nil"} "Select cosm-tent:"]
+   [:option {:value "aysle"} "Aysle"]
+   [:option {:value "earth"} "Core Earth"]
+   [:option {:value "cyberpapacy"} "Cyberpapacy"]
+   [:option {:value "livingland"} "Living Land"]
+   [:option {:value "nile"} "Nile Empire"]
+   [:option {:value "orrorsh"} "Orrorsh"]
+   [:option {:value "panpacifica"} "Pan-Pacifica"]
+   [:option {:value "tharkold"} "Tharkold"]])
+
+(defn axiom-box [type value]
+  [:div {:style {:position "relative" :border-width 3
+                 :border-radius 5 :background-color "white"
+                 :width 80 :height 80 :border-color "black"
+                 :border-style "solid" :text-align "center"}}
+   [:div {:style {:position "relative" :top 2}} 
+    type]
+   [:h1 value]])
+
+(defn effect-box [title text]
+  [:div {:style {:border-width 3 :border-style "solid"
+                 :border-color "black" :width 165 :height 100
+                 :border-radius 5 :background-color "white"
+                 :text-align "center" :overflow "hidden"}}
+   [:b title]
+   [:br]
+   text])
+
+(defn tent []
+  (let [tentdata @(rf/subscribe [:tent])]
+    (.log js/console (str tentdata))
+    [:div {:style {:position "relative" :border-width 3
+                   :border-style "solid" :border-radius 5
+                   :border-color "black" :width 365 :height 300
+                   :text-align "center" :background-color "lightblue"
+                   :overflow "hidden"}}
+     [:h2 (:name tentdata)]
+     [:div {:style {:position "absolute" :top 50 :left 5}}
+      [axiom-box "Magic" (:magic tentdata)]]
+     [:div {:style {:position "absolute" :top 50 :left 95}}
+      [axiom-box "Social" (:social tentdata)]]
+     [:div {:style {:position "absolute" :top 50 :left 185}}
+      [axiom-box "Spirit" (:spirit tentdata)]]
+     [:div {:style {:position "absolute" :top 50 :left 275}}
+      [axiom-box "Tech" (:tech tentdata)]]
+     [:br]
+     [:br]
+     [:br]
+     [:br]
+     [:h3 (:law tentdata)]
+     [:div {:style {:position "absolute" :top 190 :left 5}}
+      [effect-box (:effectname1 tentdata) (:effect1 tentdata)]]
+     [:div {:style {:position "absolute" :top 190 :left 190}}
+      [effect-box (:effectname2 tentdata) (:effect2 tentdata)]]]))
+
 (defn trade-window []
   (let [{:keys [player1 _ card1 card2] :as trade} @(rf/subscribe [:trade])
         {:keys [id _]} @(rf/subscribe [:me])]
@@ -201,6 +260,10 @@
       [:input {:style {:position "absolute" :top 0 :left 350}
                :type :button
                :value "Reset"}]
+      [:div {:style {:position "absolute" :top 70 :left 750}}
+       [set-cosm-tent]]
+      [:div {:style {:position "absolute" :top 100 :left 750}}
+       [tent]]
       [:div {:style {:position "absolute" :top 70 :left 250}}
        (for [n players]
          ^{:key n} [give-card-button n "Destiny card: " :give-destiny-card])]
@@ -294,6 +357,8 @@
       [:img
        {:src (str "img/drama/" current-drama ".jpg") :width 246
         :style {:position "absolute" :top 60 :left 0}}]]
+     [:div {:style {:position "absolute" :top 250 :left 0}}
+      [tent]]
      [:div {:style {:position "absolute" :top phand-top :left 0}}
       [:div {:style {:position "absolute" :top -10 :left 10}
              :zindex -1}
@@ -316,7 +381,8 @@
       ;;    ^{:key n} [trade-buttons n id i all-pools])]
       ]
      [:div {:style {:position "absolute" :top 0 :left 300}}
-      [extra-display other-players]]]))
+      [extra-display other-players]]
+     ]))
 
 
 (defn player-view []

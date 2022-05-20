@@ -54,23 +54,31 @@
     :join? false})
   (println "server started"))
 
+(defn remove-card [pool card]
+  (if (nil? card)
+    pool
+    (disj pool card)))
+
+(defn add-card [pool card]
+  (if (nil? card)
+    pool
+    (conj (into [] pool) card)))
+
 (defn remove-and-add [pool outcard incard]
   (let [p (into #{} pool)]
-    (conj (into [] (disj p outcard)) incard)))
+    (-> (remove-card p outcard)
+        (add-card incard))))
 
 (defn trade [player1 player2 card1 card2]
   (let [db @ws/db
         p1 (get-in db [:players player1 :player-pool])
-        p2 (get-in db [:players player2 :player-pool])]
-    (if (and (some #{card1} p1)
-             (some #{card2} p2))
-      (let [new1 (remove-and-add p1 card1 card2)
-            new2 (remove-and-add p2 card2 card1)]
-        (reset! ws/db
-                (-> (assoc-in db [:players player1 :player-pool] new1)
-                    (assoc-in [:players player2 :player-pool] new2)))
-        (ws/send-message!))
-      nil)))
+        p2 (get-in db [:players player2 :player-pool])
+        new1 (remove-and-add p1 card1 card2)
+        new2 (remove-and-add p2 card2 card1)]
+    (reset! ws/db
+            (-> (assoc-in db [:players player1 :player-pool] new1)
+                (assoc-in [:players player2 :player-pool] new2)))
+    (ws/send-message!)))
 
 
 
@@ -100,7 +108,7 @@
   
   (slurp "card-state.edn")
 
-  (gus->jarl 9 5)
+  (gus->jarl 11 nil)
   (jarl->mag 22 13)
 
   (start)

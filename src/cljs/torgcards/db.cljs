@@ -93,6 +93,11 @@
    {:send {:type type :value value}}))
 
 (rf/reg-event-fx
+ :set-cosm-tent
+ (fn [_ [type value]]
+   {:send {:type type :value value}}))
+
+(rf/reg-event-fx
  :give-cosm-card
  (fn [_ [type name]]
    {:send {:type type :value name}}))
@@ -151,6 +156,11 @@
  :player-list
  (fn [db _]
    (:player-list db)))
+
+(rf/reg-sub
+ :tent
+ (fn [db _]
+   (:tent db)))
 
 (rf/reg-sub
  :trade
