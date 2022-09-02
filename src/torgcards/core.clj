@@ -101,20 +101,41 @@
     (reset! ws/db f)
     (ws/send-message!)))
 
+(defn update-db [player hand]
+  (let [drama (into #{} (:drama @ws/db))]
+    (swap! ws/db assoc-in [:players player :player-hand] hand)
+    (swap! ws/db assoc :drama (into '() (apply disj drama hand)))))
 
+(apply disj #{1 2 3} (list 1 2))
 
 (comment
   (load-db)
-  
+
+  (save-db)
+
   (slurp "card-state.edn")
 
   (gus->jarl 11 nil)
   (jarl->mag 22 13)
 
+  
+  ;; update card state for players
+  (do
+    (update-db "jarl@jarl.ninja" (list 20 27 7))
+    (update-db "gustav.bilben@gmail.com" (list 6 11 2 29))
+    (update-db "mag-a@online.no" (list 31 60 48 45 49))
+    (ws/send-message!))
+
+
   (start)
 
   (-> @ws/db
       clojure.pprint/pprint)
+
+
+
+
+
 
   (->> (assoc @ws/db :names ws/player-names)
        (reset! ws/db))
