@@ -184,32 +184,32 @@
      [:div {:style {:position "absolute" :top 190 :left 190}}
       [effect-box (:effectname2 tentdata) (:effect2 tentdata)]]]))
 
-(defn trade-window []
-  (let [{:keys [player1 _ card1 card2] :as trade} @(rf/subscribe [:trade])
-        {:keys [id _]} @(rf/subscribe [:me])]
-    (if (seq trade)
-      [:div {:style {:position "absolute" :top 0 :left 0 :width 400 :height 220 :background-color "lightblue"
-                     :border-style "solid" :border-color "black" :border-radius 5 :border-width 3
-                     :overflow "hidden" :z-index 999 }}
-       [:input {:type :button :value "OK!"
-                :disabled (if (nil? card2) true false)
-                :style {:position "absolute" :top 10 :left 5
-                        :width 80 :height 40}
-                :on-click #(if (= id player1)
-                             (rf/dispatch [:accept-trade])
-                             nil)}]
-       [:input {:type :button :value "Cancel"
-                :style {:position "absolute" :top 53 :left 5
-                        :width 80 :height 40}
-                :on-click #(if (= id player1)
-                             (rf/dispatch [:cancel-trade])
-                             nil)}]
-       [card-display card1 "img/destiny/" {:position "absolute" :top 5 :left 90} {:scale 0.5}]
-       (if (nil? card2)
-         [:img {:src "img/destiny/back.jpg" :width 146
-                :style {:position "absolute" :top 5 :left 240}}]
-         [card-display card2 "img/destiny/" {:position "absolute" :top 5 :left 240} {:scale 0.5}])]
-      [:div])))
+;; (defn trade-window []
+;;   (let [{:keys [player1 _ card1 card2] :as trade} @(rf/subscribe [:trade])
+;;         {:keys [id _]} @(rf/subscribe [:me])]
+;;     (if (seq trade)
+;;       [:div {:style {:position "absolute" :top 0 :left 0 :width 400 :height 220 :background-color "lightblue"
+;;                      :border-style "solid" :border-color "black" :border-radius 5 :border-width 3
+;;                      :overflow "hidden" :z-index 999 }}
+;;        [:input {:type :button :value "OK!"
+;;                 :disabled (if (nil? card2) true false)
+;;                 :style {:position "absolute" :top 10 :left 5
+;;                         :width 80 :height 40}
+;;                 :on-click #(if (= id player1)
+;;                              (rf/dispatch [:accept-trade])
+;;                              nil)}]
+;;        [:input {:type :button :value "Cancel"
+;;                 :style {:position "absolute" :top 53 :left 5
+;;                         :width 80 :height 40}
+;;                 :on-click #(if (= id player1)
+;;                              (rf/dispatch [:cancel-trade])
+;;                              nil)}]
+;;        [card-display card1 "img/destiny/" {:position "absolute" :top 5 :left 90} {:scale 0.5}]
+;;        (if (nil? card2)
+;;          [:img {:src "img/destiny/back.jpg" :width 146
+;;                 :style {:position "absolute" :top 5 :left 240}}]
+;;          [card-display card2 "img/destiny/" {:position "absolute" :top 5 :left 240} {:scale 0.5}])]
+;;       [:div])))
 
 (defn display-drama []
   (let [cards @(rf/subscribe [:display-drama])
@@ -380,7 +380,7 @@
       ;;  (for [[n i] (zipmap other-players (range (count other-players)))]
       ;;    ^{:key n} [trade-buttons n id i all-pools])]
       ]
-     [:div {:style {:position "absolute" :top 0 :left 300}}
+     [:div {:style {:position "absolute" :top 0 :left 400}}
       [extra-display other-players]]
      ]))
 

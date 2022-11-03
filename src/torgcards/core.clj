@@ -83,13 +83,13 @@
 
 
 (defn gus->jarl [card1 card2]
-  (trade "gustav.bilben@gmail.com" "jarl@jarl.ninja" card1 card2))
+  (trade "gustav" "jarl" card1 card2))
 
 (defn gus->mag [card1 card2]
-  (trade "gustav.bilben@gmail.com" "mag-a@online.no" card1 card2))
+  (trade "gustav" "magnus" card1 card2))
 
 (defn jarl->mag [card1 card2]
-  (trade "jarl@jarl.ninja" "mag-a@online.no" card1 card2))
+  (trade "jarl" "magnus" card1 card2))
 
 
 (defn save-db []
@@ -118,12 +118,12 @@
   (gus->jarl 11 nil)
   (jarl->mag 22 13)
 
-  
+
   ;; update card state for players
   (do
-    (update-db "jarl@jarl.ninja" (list 20 27 7))
-    (update-db "gustav.bilben@gmail.com" (list 6 11 2 29))
-    (update-db "mag-a@online.no" (list 31 60 48 45 49))
+    (update-db "jarl" (list 20 27 7))
+    (update-db "gustav" (list 6 11 2 29))
+    (update-db "magnus" (list 31 60 48 45 49))
     (ws/send-message!))
 
 
@@ -133,7 +133,7 @@
       clojure.pprint/pprint)
 
 
-
+  
 
 
 

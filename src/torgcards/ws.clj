@@ -11,14 +11,16 @@
 
 (defonce users (atom {}))
 
-(def players #{"jarl@jarl.ninja"
-               "gustav.bilben@gmail.com"
-               "mag-a@online.no"})
+(def players #{"jarl"
+               "gustav"
+               "magnus"
+               "hugo"})
 
-(def player-names (zipmap ["jarl@jarl.ninja"
-                           "gustav.bilben@gmail.com"
-                           "mag-a@online.no"] 
-                          ["McInnes" "Igor" "Cletus"]))
+(def player-names (zipmap ["jarl"
+                           "gustav"
+                           "magnus"
+                           "hugo"] 
+                          ["McInnes" "Igor" "Cletus" "NewGuy"]))
 
 
 
