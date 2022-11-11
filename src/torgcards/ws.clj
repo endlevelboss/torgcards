@@ -20,7 +20,7 @@
                            "gustav"
                            "magnus"
                            "hugo"] 
-                          ["McInnes" "Igor" "Cletus" "NewGuy"]))
+                          ["Soulvis" "Babu Bhatt" "Cletus" "Andy Pipkin"]))
 
 
 

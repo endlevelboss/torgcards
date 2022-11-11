@@ -246,6 +246,8 @@
     [:div {:style {:position "absolute"}}
      [:img {:style {:position "absolute" :top 0 :left 25}
             :src "img/torg/logo.png" :width 200}]
+     [:img {:style {:position "absolute" :top 60 :left 450}
+            :src "img/torg/bonuschart.png" :height 60}]
      [:div {:style {:position "absolute" :top 380 :left 0}}
       [extra-display players]]
      [:div {:style {:position "absolute" :top 60 :left 0}}
